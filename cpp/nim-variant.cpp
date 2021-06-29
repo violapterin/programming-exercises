@@ -17,9 +17,7 @@ int convert(int token)
    double hold = token;
    int result = 0;
    while (hold >= 1 - 1e-9)
-   {
       hold /= 2; result++;
-   }
    return result;
 }
   
@@ -50,9 +48,7 @@ void find_answer(
             return;
          }
          if (table_answer.find(token - lead) == table_answer.end())
-         {
             find_answer(table_answer, token - lead, total - remain);
-         }
          if (!table_answer[token - lead])
          {
             table_answer[token] = true;
@@ -68,7 +64,7 @@ bool can_i_win(int bound_upper, int goal)
    int token = (1 << bound_upper) - 1;
    if (goal <= bound_upper) {return true;}
    if (goal > (bound_upper + 1) * bound_upper / 2)
-   {return false;}
+      return false;
    std::unordered_map<int, bool> table_answer;
    find_answer(table_answer, token, goal);
    return table_answer[token];
@@ -76,8 +72,10 @@ bool can_i_win(int bound_upper, int goal)
 
 int main()
 {
-   if (can_i_win(10, 11)) {std::cout << "Yes!" << std::endl;}
-   else {std::cout << "No!" << std::endl;}
+   if (can_i_win(10, 11))
+      std::cout << "Yes!" << std::endl;
+   else
+      std::cout << "No!" << std::endl;
    // "No!"
 }
 // Accepted Mar 1, 2021.
