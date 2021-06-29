@@ -22,9 +22,9 @@ update() {
             continue
          fi
       fi
-		#set -x
-		echo g++ -std=c++11 -g -o $path_out $path_in
-		#set +x
+		set -x
+		g++ -std=c++11 -g -o $path_out $path_in
+		set +x
    done
 
    # # Delete output files matching no input file.
@@ -39,9 +39,9 @@ update() {
       bare="${name%$suffix_out}"
       path_in="$1/$bare$suffix_in"
       if [ ! -f $path_in ]; then
-			#set -x
-         echo rm $path_out
-			#set +x
+			set -x
+         rm $path_out
+			set +x
       fi
    done
 }

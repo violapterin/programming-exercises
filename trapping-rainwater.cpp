@@ -62,6 +62,7 @@ int trap(std::vector<int> rain) {
 int main()
 {
   std::vector<int> v = {0,1,0,2,1,0,1,3,2,1,2,1};
-  std::cout << trap(v); // 6
+  std::cout << trap(v) << std::endl;
+  // "6"
 }
 // Accepted June 29, 2021.

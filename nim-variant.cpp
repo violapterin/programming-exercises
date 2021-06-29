@@ -13,8 +13,6 @@ a win, otherwise, return false. Assume both players play optimally.
 #include <iostream>
 #include <unordered_map>
 
-typedef std::unordered_map<int, bool> Map;
-
 int convert(int token)
 {
 	double hold = token;
@@ -36,7 +34,7 @@ void find_answer(
 		table_answer[token] = false;
 		return;
 	}
-	int remain_max = this->convert(token);
+	int remain_max = convert(token);
 	if (total <= remain_max)
 	{
 		table_answer[token] = true;
@@ -79,8 +77,8 @@ bool can_i_win(int bound_upper, int goal)
 
 int main()
 {
-	if (can_i_win(10, 11)) {std::cout << "Yes!";}
-	else {std::cout << "No!";}
-	// "Yes"
+	if (can_i_win(10, 11)) {std::cout << "Yes!" << std::endl;}
+	else {std::cout << "No!" << std::endl;}
+	// "No!"
 }
 // Accepted Mar 1, 2021.
