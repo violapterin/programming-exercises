@@ -1,4 +1,4 @@
-// Original title: 51. N-Queens
+// Original title: 51. N-Queens [hard]
 /*
 The `n` queens puzzle is the problem of placing `n` queens on an
 `n` by `n` chessboard such that no two queens attack each other.
@@ -25,16 +25,26 @@ Records initialize_records(int);
 Answer convert(int, Record);
 void print_answer(Answers);
 
+int main()
+{
+   Answers answers = solve(4);
+   print_answer(answers);
+   // ".Q.., ...Q, Q..., ..Q."
+   // "..Q., Q..., ...Q, .Q.."
+}
+
 Answers solve(int width)
 {
    // int half = (width + 1) % 2;
    Records records = initialize_records(width);
    for (int row = 0; row <= width - 1; row++)
    {
-      auto updated = records;
+      Records updated;
       for (auto _record = records.begin(); _record != records.end(); _record++)
       {
          Valids choices = select(width, row, _record->second);
+         if (choices.empty())
+            continue;
          for (auto _spot = choices.begin(); _spot != choices.end(); _spot++)
             updated.push_back(concatenate(width, *_spot, *_record));
       }
@@ -126,12 +136,4 @@ void print_answer(Answers answers)
          std::cout << *_line << ", ";
       std::cout << std::endl;
    }
-}
-
-int main()
-{
-   Answers answers = solve(4);
-   print_answer(answers);
-   // ".Q.., ...Q, Q..., ..Q."
-   // "..Q., Q..., ...Q, .Q.."
 }

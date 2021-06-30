@@ -1,29 +1,28 @@
-// Original title: 42. Trapping Rain Water
+// Original title: 42. Trapping Rain Water [hard]
 /*
 Given `n` non-negative integers representing an elevation map
 where the width of each bar is `1`, compute how much water
 it can trap after raining.
 */
+// Accepted June 29, 2021.
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <cassert>
+typedef std::vector<int> Rain;
+int find_index_biggest(Rain);
+int trap(Rain rain);
 
-int find_index_biggest(std::vector<int> group)
+int main()
 {
-   int hold = 0;
-   int index = 0;
-   for(auto head=group.begin(); head!=group.end(); head++){
-      if (hold < *head){
-         hold = *head;
-         index = head - group.begin();
-      }
-   }
-   return index;
+   Rain v = {0,1,0,2,1,0,1,3,2,1,2,1};
+   std::cout << trap(v) << std::endl;
+   // "6"
 }
 
-int trap(std::vector<int> rain)
+int trap(Rain rain)
 {
    if (rain.size() <= 2)
       return 0;
@@ -59,10 +58,15 @@ int trap(std::vector<int> rain)
    return result;
 }
 
-int main()
+int find_index_biggest(Rain rain)
 {
-   std::vector<int> v = {0,1,0,2,1,0,1,3,2,1,2,1};
-   std::cout << trap(v) << std::endl;
-   // "6"
+   int hold = 0;
+   int index = 0;
+   for(auto head=rain.begin(); head!=rain.end(); head++){
+      if (hold < *head){
+         hold = *head;
+         index = head - rain.begin();
+      }
+   }
+   return index;
 }
-// Accepted June 29, 2021.
