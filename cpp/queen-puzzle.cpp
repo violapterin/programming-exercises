@@ -11,60 +11,93 @@ a distinct board configuration of the `n` queens' placement, where
 #include <string>
 #include <vector>
 #include <set>
+#include <cassert>
 typedef std::vector<std::string> Answer;
-typedef std::vector<std::vector<std::string>> Answers;
-typedef std::vector<int> Spots;
-typedef std::set<int> Valids;
-typedef std::pair<Spots, Valids> Record;
-typedef std::vector<Record> Records;
-Answers solve(int);
-bool being_connected(int, int, int);
-Valids select(int, int, Valids);
+typedef std::vector<Answer> Many_answer;
+typedef std::vector<int> Many_spot;
+typedef std::set<int> Many_valid;
+typedef std::pair<Many_spot, Many_valid> Record;
+typedef std::vector<Record> Many_record;
+Many_answer solve(int);
+Many_valid select(int, int, Many_valid);
 Record concatenate(int, int, Record);
-Records initialize_records(int);
+bool be_connected(int, int, int);
+Many_record initialize_record(int);
 Answer convert(int, Record);
-void print_answer(Answers);
+void print_answer(Answer);
+void print_many_valid(Many_valid); // XXX
 
 int main()
 {
-   Answers answers = solve(4);
-   print_answer(answers);
+   Many_answer many_answer = solve(4);
+   for (
+      auto answer_ = many_answer.begin();
+      answer_ != many_answer.end(); answer_++
+   )
+   {
+      print_answer(*answer_);
+   }
    // ".Q.., ...Q, Q..., ..Q."
    // "..Q., Q..., ...Q, .Q.."
 }
 
-Answers solve(int width)
+Many_answer solve(int width)
 {
    // int half = (width + 1) % 2;
-   Records records = initialize_records(width);
-   for (int row = 0; row <= width - 1; row++)
+   Many_record many_record = initialize_record(width);
+   for (int row = 0; row <= width - 2; row++)
    {
-      Records updated;
-      for (auto _record = records.begin(); _record != records.end(); _record++)
+      Many_record many_updated;
+      for (
+         auto record_ = many_record.begin();
+         record_ != many_record.end(); record_++
+      )
       {
-         Valids choices = select(width, row, _record->second);
-         if (choices.empty())
+         Many_valid many_chosen = select(width, row, record_->second);
+         if (many_chosen.empty())
             continue;
-         for (auto _spot = choices.begin(); _spot != choices.end(); _spot++)
-            updated.push_back(concatenate(width, *_spot, *_record));
+         for (
+            auto spot_ = many_chosen.begin();
+            spot_ != many_chosen.end(); spot_++
+         )
+         {
+            Record updated = concatenate(width, *spot_, *record_);
+            many_updated.push_back(updated);
+            //print_many_valid(updated.second);
+         }
       }
-      records = updated;
+      many_record = many_updated;
    }
-   Answers answers;
-   for (auto _record = records.begin(); _record != records.end(); _record++)
-      answers.push_back(convert(width, *_record));
-   return answers;
+   Many_record many_filtered;
+   for (
+      auto record_ = many_record.begin();
+      record_ != many_record.end(); record_++
+   )
+   {
+      std::cout << "how many " << record_->first.size() << std::endl;
+      if (record_->first.size() >= 2) // XXX
+         many_filtered.push_back(*record_);
+   }
+   Many_answer many_answer;
+   for (
+      auto filtered_ = many_filtered.begin();
+      filtered_ != many_filtered.end(); filtered_++
+   )
+      many_answer.push_back(convert(width, *filtered_));
+   return many_answer;
 }
 
-bool being_connected(int width, int spot, int isospot)
+bool be_connected(int width, int this_spot, int that_spot)
 {
-   int column = spot % width;
-   int isocolumn = isospot % width;
-   int step = abs(spot - isospot);
-   if (column == isocolumn)
+   int this_column = this_spot % width;
+   int that_column = that_spot % width;
+   int this_row = (this_spot - this_column) / width;
+   int that_row = (that_spot - that_column) / width;
+   if (this_column == that_column)
       return true;
-   if (step % width == 0)
+   if (this_row == that_row)
       return true;
+   int step = std::abs(this_spot - that_spot);
    if (step % (width - 1) == 0)
       return true;
    if (step % (width + 1) == 0)
@@ -72,68 +105,96 @@ bool being_connected(int width, int spot, int isospot)
    return false;
 }
 
-Valids select(int width, int row, Valids valids)
+Many_valid select(int width, int the_row, Many_valid many_valid)
 {
-   Valids results;
-   for (auto _valid = valids.begin(); _valid != valids.end(); _valid++)
+   Many_valid many_chosen;
+   for (
+      auto valid_ = many_valid.begin();
+      valid_ != many_valid.end(); valid_++
+   )
    {
-      int column = *_valid % width;
-      if (row == (*_valid - column) % width);
-         results.insert(*_valid);
+      int column = *valid_ % width;
+      if (the_row == (*valid_ - column) / width);
+         many_chosen.insert(*valid_);
    }
-   return results;
+   return many_chosen;
 }
 
-Record concatenate(int width, int spot, Record record)
+void print_many_valid(Many_valid many_valid)
 {
-   Spots spots = record.first;
-   Valids valids = record.second;
-   Valids isovalids = valids;
-   spots.push_back(spot);
-   for (auto _valid = valids.begin(); _valid != valids.end(); _valid++)
+   for (
+      auto valid_ = many_valid.begin();
+      valid_ != many_valid.end(); valid_++
+   )
    {
-      if (!being_connected(width, spot, *_valid))
-         isovalids.insert(*_valid);
+      std::cout << *valid_ << ", ";
    }
-   Record updated = std::make_pair(spots, valids);
-   return updated;
+   std::cout << std::endl;
 }
 
-Records initialize_records(int width)
+Record concatenate(int width, int spot, Record record_old)
 {
-   Valids valids;
+   Many_spot many_spot = record_old.first;
+   many_spot.push_back(spot);
+   Many_valid many_valid;
+   for (
+      auto valid_ = record_old.second.begin();
+      valid_ != record_old.second.end(); valid_++
+   )
+   {
+      if (!be_connected(width, spot, *valid_))
+         many_valid.insert(*valid_);
+   }
+   Record record_new = std::make_pair(many_spot, many_valid);
+   return record_new;
+}
+
+Many_record initialize_record(int width)
+{
+   Many_valid many_valid;
    for (int valid = 0; valid <= width * width - 1; valid++)
-      valids.insert(valid);
-   Spots spots;
-   Record record = std::make_pair(spots, valids);
-   Records records = {record};
-   return records;
+      many_valid.insert(valid);
+   Many_spot many_spot;
+   Record record = std::make_pair(many_spot, many_valid);
+   Many_record many_record = {record};
+   return many_record;
 }
 
 Answer convert(int width, Record record)
 {
    Answer answer;
-   Spots spots = record.first;
-   for (int row = 0; row <= width; row++)
+   Many_spot many_spot = record.first;
+   for (int the_row = 0; the_row <= width - 1; the_row++)
    {
+      //std::cout << "convert row" << the_row << std::endl;
       std::string display = std::string(width, '.');
-      for (auto _spot = spots.begin(); _spot != spots.end(); _spot++)
+      for (
+         auto spot_ = many_spot.begin();
+         spot_ != many_spot.end(); spot_++
+      )
       {
-         int column = *_spot % width;
-         if (row == (*_spot - column) % width)
+         //std::cout << "spot " << *spot_ << std::endl;
+         int column = *spot_ % width;
+         //std::cout << "column " << *spot_ % width << std::endl;
+         //std::cout << "row " << (*spot_ - column) / width << std::endl;
+         if (the_row == (*spot_ - column) / width)
+         {
             display[column] = 'Q';
+            //std::cout << "display" << display << std::endl;
+         }
       }
+      //std::cout << "final display" << display << std::endl;
       answer.push_back(display);
    }
    return answer;
 }
 
-void print_answer(Answers answers)
+void print_answer(Answer answer)
 {
-   for (auto _answer = answers.begin(); _answer != answers.end(); _answer++)
-   {
-      for (auto _line = _answer->begin(); _line != _answer->end(); _line++)
-         std::cout << *_line << ", ";
-      std::cout << std::endl;
-   }
+   for (
+      auto line_ = answer.begin();
+      line_ != answer.end(); line_++
+   )
+      std::cout << *line_ << ", ";
+   std::cout << std::endl;
 }

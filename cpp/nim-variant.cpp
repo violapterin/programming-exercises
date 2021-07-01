@@ -13,9 +13,9 @@ a win, otherwise, return false. Assume both players play optimally.
 
 #include <iostream>
 #include <unordered_map>
-typedef std::unordered_map<int, bool> Answers;
+typedef std::unordered_map<int, bool> Many_answer;
 int convert(int);
-void find_answer(Answers&, int, int);
+void find_answer(Many_answer&, int, int);
 bool can_i_win(int, int);
 
 int main()
@@ -33,22 +33,22 @@ bool can_i_win(int bound_upper, int goal)
    if (goal <= bound_upper) {return true;}
    if (goal > (bound_upper + 1) * bound_upper / 2)
       return false;
-   Answers answers;
-   find_answer(answers, token, goal);
-   return answers[token];
+   Many_answer many_answer;
+   find_answer(many_answer, token, goal);
+   return many_answer[token];
 }
 
-void find_answer(Answers& answers, int token, int total)
+void find_answer(Many_answer& many_answer, int token, int total)
 {
    if (token == 0)
    {
-      answers[token] = false;
+      many_answer[token] = false;
       return;
    }
    int remain_max = convert(token);
    if (total <= remain_max)
    {
-      answers[token] = true;
+      many_answer[token] = true;
       return;
    }
    for (int remain = 1; remain <= remain_max; remain++)
@@ -58,19 +58,19 @@ void find_answer(Answers& answers, int token, int total)
       {
          if (total <= remain)
          {
-            answers[token] = true;
+            many_answer[token] = true;
             return;
          }
-         if (answers.find(token - lead) == answers.end())
-            find_answer(answers, token - lead, total - remain);
-         if (!answers[token - lead])
+         if (many_answer.find(token - lead) == many_answer.end())
+            find_answer(many_answer, token - lead, total - remain);
+         if (!many_answer[token - lead])
          {
-            answers[token] = true;
+            many_answer[token] = true;
             return;
          }
       }
    }
-   answers[token] = false;
+   many_answer[token] = false;
 }
 
 int convert(int token)
