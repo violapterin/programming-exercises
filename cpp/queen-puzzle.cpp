@@ -25,8 +25,7 @@ bool be_connected(int, int, int);
 Many_record initialize_record(int);
 Answer convert(int, Record);
 void print_answer(Answer);
-void print_many_valid(Many_valid); // XXX
-void print_many_spot(Many_spot); // XXX
+Record find_symmetric(int, Record);
 
 int main()
 {
@@ -44,19 +43,14 @@ int main()
 
 Many_answer solve(int width)
 {
-   // int half = (width + 1) % 2;
+   int half = (width - 1) / 2;
    Many_record many_record = initialize_record(width);
    for (int row = 0; row <= width - 1; row++)
    {
-      std::cout << "ROW: " << row << std::endl;
       Many_record many_updated;
       auto record_ = many_record.begin();
       while (record_ != many_record.end())
       {
-         std::cout << "record spot:" << std::endl;
-         print_many_spot(record_->first);
-         std::cout << "record valid:" << std::endl;
-         print_many_valid(record_->second);
          Many_valid many_chosen = select(width, row, record_->second);
          if (many_chosen.empty())
          {
@@ -64,41 +58,65 @@ Many_answer solve(int width)
             continue;
          }
          for (
-            auto spot_ = many_chosen.begin();
-            spot_ != many_chosen.end(); spot_++
+            auto chosen_ = many_chosen.begin();
+            chosen_ != many_chosen.end(); chosen_++
          )
          {
-            Record updated = concatenate(width, *spot_, *record_);
+            if (*chosen_ / width == 0 && *chosen_ > half)
+               continue;
+            Record updated = concatenate(width, *chosen_, *record_);
             many_updated.push_back(updated);
-            //std::cout << "  choosing:" << *spot_ << std::endl;
-            //std::cout << "  updated:" << std::endl;
-            //std::cout << "  ";
-            print_many_valid(updated.second);
          }
          record_++;
       }
       many_record = many_updated;
    }
-   Many_record many_filtered;
+   Many_record many_full;
    for (
       auto record_ = many_record.begin();
       record_ != many_record.end(); record_++
    )
    {
       if (record_->first.size() >= width - 1)
-      {
-         many_filtered.push_back(*record_);
-      }
+         many_full.push_back(*record_);
+         if (width % 2 != 1 || record_->first[0] != (width - 1) / 2)
+            many_full.push_back(find_symmetric(width, *record_));
    }
    Many_answer many_answer;
    for (
-      auto filtered_ = many_filtered.begin();
-      filtered_ != many_filtered.end(); filtered_++
+      auto full_ = many_full.begin();
+      full_ != many_full.end(); full_++
+   )
+      many_answer.push_back(convert(width, *full_));
+   return many_answer;
+}
+
+Record find_symmetric(int width, Record given)
+{
+   Many_spot many_spot_given = given.first;
+   Many_valid many_valid_given = given.second;
+   Many_spot many_spot;
+   Many_valid many_valid;
+   for (
+      auto spot_ = many_spot_given.begin();
+      spot_ != many_spot_given.end(); spot_++
    )
    {
-      many_answer.push_back(convert(width, *filtered_));
+      int column = *spot_ % width;
+      int row = (*spot_ - column) / width;
+      many_spot.push_back(row * width + (width - 1 - column));
    }
-   return many_answer;
+   for (
+      auto valid_ = many_valid_given.begin();
+      valid_ != many_valid_given.end(); valid_++
+   )
+   {
+      int column = *valid_ % width;
+      int row = (*valid_ - column) / width;
+      many_valid.insert(row * width + (width - 1 - column));
+   }
+   Record symmetric = std::make_pair(many_spot, many_valid);
+   return symmetric;
 }
 
 bool be_connected(int width, int this_unordered, int that_unordered)
@@ -110,10 +128,7 @@ bool be_connected(int width, int this_unordered, int that_unordered)
       that_spot = this_unordered;
       this_spot = that_unordered;
    }
-   //std::cout << "checking spots "
-   //   << this_spot << ", " << that_spot << std::endl;
 
-   bool whether_connected = false;
    int this_column = this_spot % width;
    int that_column = that_spot % width;
    int this_row = (this_spot - this_column) / width;
@@ -121,33 +136,27 @@ bool be_connected(int width, int this_unordered, int that_unordered)
    int step = that_spot - this_spot;
    if (this_column == that_column)
    {
-      //std::cout << "same column" << std::endl;
-      whether_connected = true;
+      return true;
    }
    else if (this_row == that_row)
    {
-      //std::cout << "same row" << std::endl;
-      whether_connected = true;
+      return true;
    }
    else if (
       step % (width - 1) == 0
       && this_spot % width - that_spot % width == step / (width - 1)
    )
    {
-      //std::cout << "left down to right up" << std::endl;
-      whether_connected = true;
+      return true;
    }
    else if (
       step % (width + 1) == 0
       && that_spot % width - this_spot % width == step / (width + 1)
    )
    {
-      //std::cout << "left up to right down" << std::endl;
-      whether_connected = true;
+      return true;
    }
-   //if (whether_connected)
-   //{std::cout << "connected!" << std::endl;}
-   return whether_connected;
+   return false;
 }
 
 // 0, 1, 2, 3
@@ -158,46 +167,18 @@ bool be_connected(int width, int this_unordered, int that_unordered)
 Many_valid select(int width, int the_row, Many_valid many_valid)
 {
    Many_valid many_chosen;
-   //std::cout << "the row:" << the_row << std::endl;
    for (
       auto valid_ = many_valid.begin();
       valid_ != many_valid.end(); valid_++
    )
    {
-      //std::cout << "valid:" << *valid_ << std::endl;
       int column = *valid_ % width;
       if (the_row == (*valid_ - column) / width)
       {
-         //std::cout << "insert:" << *valid_ << std::endl;
          many_chosen.insert(*valid_);
       }
    }
-   //print_many_valid(many_chosen);
    return many_chosen;
-}
-
-void print_many_spot(Many_spot many_spot)
-{
-   for (
-      auto spot_ = many_spot.begin();
-      spot_ != many_spot.end(); spot_++
-   )
-   {
-      std::cout << *spot_ << ", ";
-   }
-   std::cout << std::endl;
-}
-
-void print_many_valid(Many_valid many_valid)
-{
-   for (
-      auto valid_ = many_valid.begin();
-      valid_ != many_valid.end(); valid_++
-   )
-   {
-      std::cout << *valid_ << ", ";
-   }
-   std::cout << std::endl;
 }
 
 Record concatenate(int width, int spot, Record record_old)
