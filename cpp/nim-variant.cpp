@@ -9,7 +9,7 @@ token replacement until they reach a `total >= 100`. Given two integers
 `bound_upper` and `goal`, return true if the first player to move can force
 a win, otherwise, return false. Assume both players play optimally.
 */
-// Accepted Mar 1, 2021.
+// Accepted March 1, 2021.
 
 #include <iostream>
 #include <unordered_map>

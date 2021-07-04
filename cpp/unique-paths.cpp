@@ -1,44 +1,29 @@
+// Original title: 62. Unique Paths [medium]
+/*
+A robot is located at the top- left corner of a `height_max` by `width_max` grid. The
+robot can only move either down or right at any point in time. The
+robot is trying to reach the bottom-right corner of the grid. How
+many possible unique paths are there?
+*/
+// Accepted July 4, 2021.
+
 #include <iostream>
 #include <vector>
 typedef std::vector<int> Array;
-int uniquePaths(int height_max, int width_max);
-Array calculate_rightwards(Array);
-Array calculate_expanded(Array);
-Array calculate_shrinked(Array);
+int count_unique_path(int height_max, int width_max);
 Array calculate(Array, bool, bool);
 
-int uniquePaths(int height_max, int width_max) {
+int count_unique_path(int height_max, int width_max) {
    Array change = {1};
    int bound_first = std::min(height_max, width_max);
    int bound_second = std::abs(width_max - height_max);
    for (int head = 1; head <= bound_first - 1; head++)
-   {
-      change = calculate_expanded(change);
-   }
+      change = calculate(change, true, true);
    for (int head = 1; head <= bound_second; head++)
-   {
-      change = calculate_rightwards(change);
-   }
+      change = calculate(change, false, true);
    for (int head = 1; head <= bound_first - 1; head++)
-   {
-      change = calculate_shrinked(change);
-   }
+      change = calculate(change, false, false);
    return change.front();
-}
-
-Array calculate_rightwards(Array given)
-{
-   return calculate(given, false, true);
-}
-
-Array calculate_expanded(Array given)
-{
-   return calculate(given, true, true);
-}
-
-Array calculate_shrinked(Array given)
-{
-   return calculate(given, false, false);
 }
 
 Array calculate(Array given, bool whether_left, bool whether_right)
@@ -46,25 +31,20 @@ Array calculate(Array given, bool whether_left, bool whether_right)
    int size = given.size();
    Array array;
    if (whether_left)
-   {
       array.push_back(given.front());
-   }
-   for (auto count_ = array.begin() + 1; count_ != array.end() - 1; count_++)
+   if (size > 1)
    {
-      int step = count_ - array.begin();
-      std::cout << "step - 1: " << step << std::endl;
-      int novel = given[step - 1] + given[step];
-      array.push_back(novel);
+      for (int head = 0; head <= size - 2; head++)
+         array.push_back(given[head] + given[head + 1]);
    }
    if (whether_right)
-   {
       array.push_back(given.back());
-   }
    return array;
 }
 
 int main()
 {
-   int p = uniquePaths(3, 7);
-   std::cout << p << std::endl;
+   int count_path = count_unique_path(3, 7);
+   std::cout << count_path << std::endl;
+   // 28
 }
