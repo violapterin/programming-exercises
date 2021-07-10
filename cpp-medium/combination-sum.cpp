@@ -10,54 +10,58 @@ that sum up to target is less than `150` combinations for the given input.
 */
 
 #include <iostream>
+#include <algorithm>
 #include <vector>
 typedef std::vector<int> Tuple;
 typedef std::vector<Tuple> Many_tuple;
 Many_tuple find_combination(Tuple&, int);
+void push_each(int, Many_tuple&);
 Many_tuple concatenate(Many_tuple, Many_tuple);
 void print_tuple(Many_tuple);
 
 Many_tuple find_combination(Tuple& choice, int target)
 {
-   Many_tuple empty;
-   if (choice.size() == 0)
-   {
-      return empty;
-   }
+   std::sort(choice.begin(), choice.end());
    Many_tuple whole;
-   Many_tuple previous;
    for (
       auto value_ = choice.begin();
       value_ != choice.end(); value_++
    )
    {
-      Many_tuple decided;
-      int target_novel = target - *value_;
-      std::cout << "target:" << target_novel << std::endl;
-      if (target_novel == 0)
+      Many_tuple partial;
+      int remain = target - *value_;
+      if (remain == 0)
       {
          Tuple single = {*value_};
-         decided.push_back(single);
+         whole.push_back(single);
       }
-      else if (target_novel > 0)
+      else if (remain > 0)
       {
-         decided = find_combination(choice, target_novel);
-         for (
-            auto combination_ = decided.begin();
-            combination_ != decided.end(); combination_++
-         )
+         partial = find_combination(choice, remain);
+         if (!partial.empty())
          {
-            combination_->push_back(*value_);
+            push_each(*value_, partial);
+            whole = concatenate(whole, partial);
          }
-         std::cout << "how many:" << decided.size() << std::endl;
       }
-      Many_tuple previous = concatenate(previous, decided);
    }
    return whole;
 }
 
+void push_each(int value, Many_tuple& many_tuple)
+{
+   for (
+      auto tuple_ = many_tuple.begin();
+      tuple_ != many_tuple.end(); tuple_++
+   )
+   {
+      tuple_->push_back(value);
+   }
+}
+
 Many_tuple concatenate(
-   Many_tuple this_many_tuple, Many_tuple that_many_tuple
+   Many_tuple this_many_tuple,
+   Many_tuple that_many_tuple
 )
 {
    Many_tuple whole;
