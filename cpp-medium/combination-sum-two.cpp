@@ -7,6 +7,7 @@ the candidate numbers sum to target.
 Each number in candidates may only be used once in the combination.
 Note: The solution set must not contain duplicate combinations.
 */
+// Accepted July 11, 2021.
 
 #include <iostream>
 #include <algorithm>
@@ -29,22 +30,41 @@ Many_tuple find_combination(Tuple& choice, int target)
       value_ != choice.end(); value_++
    )
    {
-      Many_tuple partial;
-      int remain = target - *value_;
+      int remain = target;
+      auto next_ = value_;
+      while (next_ != choice.end())
+      {
+         if (*next_ == *value_)
+         {
+            remain -= *next_;
+            next_++;
+         }
+         else { break; }
+      }
+
       if (remain == 0)
       {
-         Tuple single = {*value_};
-         whole.push_back(single);
+         Tuple pure = {};
+         for (int count = 1; count <= next_ - value_; count++)
+         {
+            pure.push_back(*value_);
+         }
+         whole.push_back(pure);
       }
       else if (remain > 0)
       {
-         auto next_ = value_ + 1;
-         if (next_ == choice.end()) { continue; }
-         Tuple other = Tuple(next_, choice.end());
-         partial = find_combination(other, remain);
+         Many_tuple partial;
+         if (next_ != choice.end())
+         {
+            Tuple other = Tuple(next_, choice.end());
+            partial = find_combination(other, remain);
+         }
          if (!partial.empty())
          {
-            push_each(*value_, partial);
+            for (int count = 1; count <= next_ - value_; count++)
+            {
+               push_each(*value_, partial);
+            }
             whole = concatenate(whole, partial);
          }
       }
@@ -146,14 +166,4 @@ int main()
    // [1,2,5,]
    // [1,7,]
    // [2,6,]
-   /*
-   Tuple choice = {2, 5, 2, 1, 2};
-   int target = 5;
-   Many_tuple many_tuple = find_combination(choice, target);
-   print_many_tuple(many_tuple);
-   // [1,1,6,]
-   // [1,2,5,]
-   // [1,7,]
-   // [2,6,]
-   */
 }

@@ -35,8 +35,8 @@ Many_tuple find_combination(Tuple& choice, int target)
       int remain = target - *value_;
       if (remain == 0)
       {
-         Tuple single = {*value_};
-         whole.push_back(single);
+         Tuple pure = {*value_};
+         whole.push_back(pure);
       }
       else if (remain > 0)
       {
