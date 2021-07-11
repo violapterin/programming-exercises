@@ -1,3 +1,4 @@
+// Original title: 39. Combination Sum [medium]
 /*
 Given an array of distinct integers candidates and a target integer target,
 return a list of all unique combinations of candidates where the chosen
@@ -8,6 +9,7 @@ Two combinations are unique if the frequency of at least one of the chosen
 numbers is different. It is guaranteed that the number of unique combinations
 that sum up to target is less than `150` combinations for the given input.
 */
+// Accepted July 11, 2021.
 
 #include <iostream>
 #include <algorithm>
@@ -15,9 +17,10 @@ that sum up to target is less than `150` combinations for the given input.
 typedef std::vector<int> Tuple;
 typedef std::vector<Tuple> Many_tuple;
 Many_tuple find_combination(Tuple&, int);
-void push_each(int, Many_tuple&);
 Many_tuple concatenate(Many_tuple, Many_tuple);
-void print_tuple(Many_tuple);
+void push_each(int, Many_tuple&);
+void print_many_tuple(Many_tuple);
+void print_tuple(Tuple);
 
 Many_tuple find_combination(Tuple& choice, int target)
 {
@@ -37,7 +40,8 @@ Many_tuple find_combination(Tuple& choice, int target)
       }
       else if (remain > 0)
       {
-         partial = find_combination(choice, remain);
+         Tuple other = Tuple(value_, choice.end());
+         partial = find_combination(other, remain);
          if (!partial.empty())
          {
             push_each(*value_, partial);
@@ -82,23 +86,29 @@ Many_tuple concatenate(
    return whole;
 }
 
-void print_tuple(Many_tuple many_tuple)
+void print_many_tuple(Many_tuple many_tuple)
 {
    for (
       auto tuple_ = many_tuple.begin();
       tuple_ != many_tuple.end(); tuple_++
    )
    {
-      std::cout << "[";
-      for (
-         auto value_ = tuple_->begin();
-         value_ != tuple_->end(); value_++
-      )
-      {
-         std::cout << *value_ << ",";
-      }
-      std::cout << "]" << std::endl;
+      print_tuple(*tuple_);
    }
+}
+
+void print_tuple(Tuple tuple)
+{
+   std::cout << "[";
+   for (
+      auto value_ = tuple.begin();
+      value_ != tuple.end(); value_++
+   )
+   {
+      std::cout << *value_ << ",";
+   }
+   std::cout << "]";
+   std::cout << std::endl;
 }
 
 int main()
@@ -106,7 +116,7 @@ int main()
    Tuple choice = {2, 3, 5};
    int target = 8;
    Many_tuple many_tuple = find_combination(choice, target);
-   print_tuple(many_tuple);
+   print_many_tuple(many_tuple);
    // [2,2,2,2,]
    // [2,3,3,]
    // [3,5,]
