@@ -11,20 +11,24 @@ Constraints: `1 <= m <= 5`, `1 <= n <= 1000`.
 
 #include <iostream>
 #include <string>
-//#include <vector>
+#include <vector>
 //#include <algorithm>
-#include <cmath>
-//typedef std::vector<int> Rain;
+#include <map>
+typedef std::map<int, int> Table;
+typedef std::vector<Table> Configuration;
 int find_count_coloring(int, int);
 int give_additional(int, int, int);
+int power_three_modulo(int);
+int modulo(int);
 
 int main()
 {
-   int width = 5;
-   int height = 5;
-   int 
+   int width = 3;
+   int height = 3;
    int count = find_count_coloring(width, height);
    std::cout << "There are " << count << " ways." << std::endl;
+   //int width = 5;
+   //int height = 5;
    // "580986"
 }
 
@@ -32,29 +36,54 @@ int main()
 int find_count_coloring(int width, int height)
 {
    int total = 1 << (width - 1);
-   std::vector<int> count_old(total, 1);
+   Table table_default;
+   Configuration configuration;
+   table_default[width] = 1;
+   for (int pattern = 0; pattern <= total - 1; pattern++)
+   {
+      configuration.push_back(table_default);
+   }
    for (int row = 1; row <= height - 1; row++)
    {
-      std::vector<int> count_new(total, 0);
-      for (int pattern_new = 1; pattern_new <= total; pattern_new++)
+      Configuration hold;
+      for (int pattern = 0; pattern <= total - 1; pattern++)
       {
-         for (int pattern_old = 1; pattern_old <= total; pattern_old++)
-         {
-            additional = give_additional(width, pattern_old, pattern_new);
-            count = count_old[pattern_old] + additional;
-            count = modulo(count);
-            count_new[pattern_new] += count;
-         }
-         count_new[pattern_new] = modulo(count_new[pattern_new]);
+         hold.push_back(Table());
       }
-      count_old = count_new;
+      for (int pattern_old = 0; pattern_old <= total - 1; pattern_old++)
+      {
+         Table table_old = configuration[pattern_old];
+         for (int pattern_new = 0; pattern_new <= total - 1; pattern_new++)
+         {
+            int additional = give_additional(width, pattern_old, pattern_new);
+            for(
+               auto pair_ = table_old.begin();
+               pair_ != table_old.end(); pair_++
+            )
+            {
+               int count = modulo(pair_->second);
+               //std::cout << "additional:" << additional << std::endl;
+               //std::cout << "count:" << count << std::endl;
+               hold[pattern_new][pair_->first + additional] += count;
+            }
+         }
+      }
+      configuration = hold;
    }
-   int count_region = 0;
-   for (int pattern = 1; pattern <= total; pattern++)
+   int result = 0;
+   for (int pattern = 0; pattern <= total - 1; pattern++)
    {
-      count_region += count_old[pattern];
+      for(
+         auto pair_ = configuration[pattern].begin();
+         pair_ != configuration[pattern].end(); pair_++
+      )
+      {
+         int count_coloring = power_three_modulo(pair_->first);
+         int count_method = modulo(pair_->second);
+         result += count_coloring * count_method;
+         result = modulo(result);
+      }
    }
-   int result = power_three_modulo(count_region);
    return result;
 }
 
@@ -65,18 +94,17 @@ int give_additional(int width, int pattern_old, int pattern_new)
    {
       for (int step = 0; step <= width - 3; step++)
       {
-         int mask_new = pattern_new ^ (2 << step);
-         if (mask_new) { result += 1; }
+         int mask_new = (pattern_new & (3 << step)) ^ (2 << step);
+         if (mask_new == 0) { result += 1; }
       }
       for (int step = 0; step <= width - 3; step++)
       {
-         int mask_old = pattern_old ^ (2 << step);
-         int mask_new = pattern_new ^ (1 << step);
-         if (mask_new) {
-            if (mask_old != 0) { result -= 1; }
-         }
+         int mask_old = (pattern_old & (3 << step)) ^ (2 << step);
+         int mask_new = (pattern_new & (3 << step)) ^ (1 << step);
+         if (mask_new == 0) { if (mask_old != 0) { result -= 1; } }
       }
    }
+   std::cout << "additional:" << result << std::endl;
    return result;
 }
 
@@ -93,7 +121,7 @@ int power_three_modulo(int power)
 
 int modulo(int natural)
 {
-   int characteristic = 1 000 000 007;
+   int characteristic = 1000000007;
    int result = natural % characteristic;
    return result;
 }
