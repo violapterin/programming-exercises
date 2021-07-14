@@ -18,17 +18,18 @@ typedef std::map<int, int> Table;
 typedef std::vector<Table> Configuration;
 int find_count_coloring(int, int);
 int give_additional(int, int, int);
-int power_three_modulo(int);
+int give_additional(int, int);
+int power_two_modulo(int);
 int modulo(int);
 
 int main()
 {
-   int width = 3;
+   int width = 2;
    int height = 3;
    int count = find_count_coloring(width, height);
    std::cout << "There are " << count << " ways." << std::endl;
-   //int width = 5;
-   //int height = 5;
+   // int width = 5;
+   // int height = 5;
    // "580986"
 }
 
@@ -36,14 +37,21 @@ int main()
 int find_count_coloring(int width, int height)
 {
    int total = 1 << (width - 1);
-   Table table_default;
    Configuration configuration;
-   table_default[width] = 1;
    for (int pattern = 0; pattern <= total - 1; pattern++)
    {
-      configuration.push_back(table_default);
+      configuration.push_back(Table());
    }
-   for (int row = 1; row <= height - 1; row++)
+   if (height >= 2)
+   {
+      for (int pattern = 0; pattern <= total - 1; pattern++)
+      {
+         int additional = give_additional(width, pattern);
+         configuration[pattern][width + additional] = 1;
+      }
+   }
+
+   for (int row = 1; row <= height - 2; row++)
    {
       Configuration hold;
       for (int pattern = 0; pattern <= total - 1; pattern++)
@@ -62,14 +70,13 @@ int find_count_coloring(int width, int height)
             )
             {
                int count = modulo(pair_->second);
-               //std::cout << "additional:" << additional << std::endl;
-               //std::cout << "count:" << count << std::endl;
                hold[pattern_new][pair_->first + additional] += count;
             }
          }
       }
       configuration = hold;
    }
+
    int result = 0;
    for (int pattern = 0; pattern <= total - 1; pattern++)
    {
@@ -78,10 +85,29 @@ int find_count_coloring(int width, int height)
          pair_ != configuration[pattern].end(); pair_++
       )
       {
-         int count_coloring = power_three_modulo(pair_->first);
+         int count_coloring = 3 * power_two_modulo(pair_->first - 1);
          int count_method = modulo(pair_->second);
          result += count_coloring * count_method;
          result = modulo(result);
+      }
+   }
+   return result;
+}
+
+int give_additional(int width, int pattern_new)
+{
+   int result = 1;
+   if (width >= 3)
+   {
+      for (int step = 0; step <= width - 3; step++)
+      {
+         int mask_new = (pattern_new & (3 << step)) ^ (2 << step);
+         if (mask_new == 0) { result += 1; }
+      }
+      for (int step = 0; step <= width - 3; step++)
+      {
+         int mask_new = (pattern_new & (3 << step)) ^ (1 << step);
+         if (mask_new == 0) { result -= 1; }
       }
    }
    return result;
@@ -104,16 +130,15 @@ int give_additional(int width, int pattern_old, int pattern_new)
          if (mask_new == 0) { if (mask_old != 0) { result -= 1; } }
       }
    }
-   std::cout << "additional:" << result << std::endl;
    return result;
 }
 
-int power_three_modulo(int power)
+int power_two_modulo(int power)
 {
    int result = 1;
    for (int step = 1; step <= power; step++)
    {
-      result *= 3;
+      result *= 2;
       result = modulo(result);
    }
    return result;
