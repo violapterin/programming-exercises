@@ -1,9 +1,11 @@
-// Original title: 62. Unique Paths [medium]
+// 62. Unique Paths [medium]
 /*
-A robot is located at the top- left corner of a `height_max` by `width_max` grid. The
-robot can only move either down or right at any point in time. The
-robot is trying to reach the bottom-right corner of the grid. How
-many possible unique paths are there?
+   A robot is located at the top- left corner of a `m` by `n` grid.
+The robot can only move either down or right at any point in time.
+The robot is trying to reach the bottom- right corner of the grid.
+How many possible unique paths are there?
+   `1 <= m, n <= 100`
+   The answer will be less than or equal to `2 * 10^9`.
 */
 // Accepted July 4, 2021.
 
@@ -12,6 +14,13 @@ many possible unique paths are there?
 typedef std::vector<int> Array;
 int count_unique_path(int height_max, int width_max);
 Array calculate(Array, bool, bool);
+
+int main()
+{
+   int count_path = count_unique_path(3, 7);
+   std::cout << count_path << std::endl;
+   // "28"
+}
 
 int count_unique_path(int height_max, int width_max) {
    Array change = {1};
@@ -40,11 +49,4 @@ Array calculate(Array given, bool whether_left, bool whether_right)
    if (whether_right)
       array.push_back(given.back());
    return array;
-}
-
-int main()
-{
-   int count_path = count_unique_path(3, 7);
-   std::cout << count_path << std::endl;
-   // 28
 }

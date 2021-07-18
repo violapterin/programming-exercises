@@ -1,11 +1,13 @@
 // 1931. Painting a Grid With Three Different Colors [hard]
 /*
-You are given two integers `m` and `n`. Consider an `m` by `n` grid
-where each cell is initially white. You can paint each cell red,
-green, or blue. All cells must be painted. Return the number of ways
-to color the grid with no two adjacent cells having the same color.
-Since the answer can be very large, return it modulo `10^9 + 7`.
-Constraints: `1 <= m <= 5`, `1 <= n <= 1000`.
+   You are given two integers `m` and `n`. Consider an `m` by `n`
+grid where each cell is initially white. You can paint each cell
+red, green, or blue. All cells must be painted.
+   Return the number of ways to color the grid with no two adjacent
+cells having the same color. Since the answer can be very large,
+return it modulo `10^9 + 7`.
+   `1 <= m <= 5`
+   `1 <= n <= 1000`
 */
 // Accepted July 14, 2021.
 
@@ -13,7 +15,6 @@ Constraints: `1 <= m <= 5`, `1 <= n <= 1000`.
 #include <string>
 #include <vector>
 #include <set>
-//#include <algorithm>
 #include <map>
 int find_count_coloring(int, int);
 bool be_compatible(int, int, int);
