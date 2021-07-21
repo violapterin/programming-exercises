@@ -11,15 +11,14 @@ times in the segmentation.
 #include <vector>
 #include <algorithm>
 typedef std::vector<std::string> Dictionary;
-int count_triangle_number(Choice&);
-int count_triangle_number_variable(Choice*);
-int count_triangle_number_fixed(int, Choice*);
+bool break_word(std::string, Dictionary&);
+bool whether_match_beginning(std::string, std::string);
 
 int main()
 {
    std::string text = "applepenapple";
    Dictionary dictionary = {"apple", "pen"};
-   if (count = break_word(text, dictionary))
+   if (break_word(text, dictionary))
    {
       std::cout << "Yes!" << std::endl;
    }
@@ -30,19 +29,27 @@ int main()
    // "Yes!"
 }
 
-bool break_word(string text, Dictionary& dictionary)
+bool break_word(std::string text, Dictionary& dictionary)
 {
-   for entry in dictionary
-   if (whether_match_beginning(text, entry))
-   remain = text - start
-   break_word(remain, Dictionary& dictionary)
+   for (
+      auto entry_ = dictionary.begin();
+      entry_ != dictionary.end(); entry_++
+   )
+   {
+      if (!whether_match_beginning(text, *entry_)) { continue; }
+      if (entry_->size() == text.size()) { return true; }
+      std::string remain = text.substr(entry_->size(), std::string::npos);
+      bool check_remain = break_word(remain, dictionary);
+      if (check_remain) { return true; }
+   }
+   return false;
 }
 
 bool whether_match_beginning(std::string parent, std::string child)
 {
-   bool whether;
-   int size = child.size()
-   slice = parent[:size]
-   if (slice == child) { whether = true; }
-   return whether
+   if (parent.size() < child.size()) { return false; }
+   int size = child.size();
+   std::string slice = parent.substr(0, size);
+   if (slice == child) { return true; }
+   return false;
 }
