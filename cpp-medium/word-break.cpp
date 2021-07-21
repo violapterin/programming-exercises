@@ -5,51 +5,71 @@ return true if `text` can be segmented into a space- separated
 sequence of one or more words in `dictionary`.
    Note that the same word in the dictionary may be reused multiple
 times in the segmentation.
+   `1 <= text.length <= 300`
+   `1 <= dictionary.length <= 1000`
+   `1 <= dictionary[i].length <= 20`
+   `s` and `dictionary[i]` consist of only lowercase English letters.
+   All the strings of `dictionary` are unique.
 */
 
 #include <iostream>
+#include <string>
 #include <vector>
 #include <algorithm>
 typedef std::vector<std::string> Dictionary;
-bool break_word(std::string, Dictionary&);
-bool whether_match_beginning(std::string, std::string);
+struct Order;
+bool shall_break_word(std::string, Dictionary&);
+bool shall_break_word_sorted(std::string, Dictionary&);
+//bool shall_match_beginning(std::string, std::string);
 
 int main()
 {
    std::string text = "applepenapple";
    Dictionary dictionary = {"apple", "pen"};
-   if (break_word(text, dictionary))
+   if (shall_break_word(text, dictionary))
    {
       std::cout << "Yes!" << std::endl;
    }
    else
    {
-      std::cout << "Yes!" << std::endl;
+      std::cout << "No!" << std::endl;
    }
    // "Yes!"
 }
 
-bool break_word(std::string text, Dictionary& dictionary)
+struct Order {
+   inline bool operator()(
+      const std::string& first,
+      const std::string& second
+   ) const
+   {
+      return first.size() >= second.size();
+   }
+};
+
+bool shall_break_word(std::string text, Dictionary& dictionary)
+{
+   Order order;
+   std::sort(dictionary.begin(), dictionary.end(), order);
+   whether = shall_break_word_sorted(text, dictionary);
+   return whether;
+}
+
+bool shall_break_word_sorted(std::string text, Dictionary& dictionary)
 {
    for (
       auto entry_ = dictionary.begin();
       entry_ != dictionary.end(); entry_++
    )
    {
-      if (!whether_match_beginning(text, *entry_)) { continue; }
-      if (entry_->size() == text.size()) { return true; }
-      std::string remain = text.substr(entry_->size(), std::string::npos);
-      bool check_remain = break_word(remain, dictionary);
-      if (check_remain) { return true; }
+      if (text.size() < entry_->size()) { continue; }
+      if (text[0] != (*entry_)[0]) { continue; }
+      int size = entry_->size();
+      std::string slice = text.substr(0, size);
+      if (slice != *entry_) { continue; }
+      if (size == text.size()) { return true; }
+      std::string remain = text.substr(size, std::string::npos);
+      if (shall_break_word_sorted(remain, dictionary)) { return true; }
    }
-   return false;
-}
-
-bool whether_match_beginning(std::string parent, std::string child)
-{
-   if (parent.size() < child.size()) { return false; }
-   int size = child.size();
-   std::string slice = parent.substr(0, size);
-   if (slice == child) { return true; }
    return false;
 }
