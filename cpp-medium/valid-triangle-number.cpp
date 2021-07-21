@@ -34,36 +34,30 @@ int count_triangle_number(Choice& choice)
 
 int count_triangle_number_variable(Choice* choice_)
 {
-   if (choice_->size() < 3)
-   {
-      return 0;
-   }
-   int small = (*choice_)[0];
-   choice_->erase(choice_->begin());
-   int count_fixed = count_triangle_number_fixed(small, choice_);
+   if (choice_->size() < 3) { return 0; }
+   int final = choice_->back();
+   choice_->pop_back();
+   int count_fixed = count_triangle_number_fixed(final, choice_);
    int count_partial = count_triangle_number_variable(choice_);
    int count = count_fixed + count_partial;
    return count;
 }
 
-int count_triangle_number_fixed(int small, Choice* choice_)
+int count_triangle_number_fixed(int final, Choice* choice_)
 {
-   if (choice_->size() < 2)
-   {
-      return 0;
-   }
+   if (choice_->size() < 2) { return 0; }
    int count = 0;
    for (
-      auto less_ = choice_->begin();
-      less_ != choice_->end() - 1; less_++
+      auto small_ = choice_->begin();
+      small_ != choice_->end() - 1; small_++
    )
    {
       for (
-         auto greater_ = less_ + 1;
-         greater_ != choice_->end(); greater_++
+         auto middle_ = choice_->end() - 1;
+         middle_ != small_; middle_--
       )
       {
-         if (*greater_ >= *less_ + small) { break; }
+         if (*middle_ + *small_ <= final) { break; }
          count += 1;
       }
    }
