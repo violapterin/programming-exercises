@@ -11,6 +11,7 @@ times in the segmentation.
    `text` and `dictionary[i]` consist of only lowercase English letters.
    All the strings of `dictionary` are unique.
 */
+// Accepted July 22, 2021.
 
 #include <iostream>
 #include <string>
@@ -21,9 +22,9 @@ times in the segmentation.
 typedef std::vector<std::string> Dictionary;
 typedef std::set<std::string> Group;
 typedef std::map<char, Group> Table;
-struct Order;
+typedef std::vector<bool> Journal;
 bool shall_break_word(std::string, Dictionary&);
-bool shall_check_table(std::string, Table&);
+bool shall_check_table(std::string, Table&, Journal&, int);
 
 int main()
 {
@@ -40,21 +41,11 @@ int main()
    // "Yes!"
 }
 
-/*
-struct Order
-{
-   inline bool operator()(std::string& first, std::string& second)
-   {
-      return first.size() > second.size();
-   }
-};
-*/
-
 bool shall_break_word(std::string text, Dictionary& dictionary)
 {
    std::string alphabet = "abcdefghijklmnopqrstuvwxyz";
    Table table = Table();
-   for (int head = 0; head <= 25; head ++)
+   for (int head = 0; head <= 25; head++)
    {
       char symbol = alphabet[head];
       Group group = Group();
@@ -68,23 +59,22 @@ bool shall_break_word(std::string text, Dictionary& dictionary)
       char symbol = (*entry_)[0];
       table[symbol].insert(*entry_);
    }
-   /*
-   Order order;
-   for (
-      auto group_ = table.begin();
-      group_ != table.end(); group_++
-   )
+   Journal journal(text.size(), false);
+   for (int head = text.size() - 1; head >= 0; head--)
    {
-      std::sort(group_->begin(), group_->end(), order);
+      journal[head] = shall_check_table(text, table, journal, head);
    }
-   */
-   bool whether = shall_check_table(text, table);
-   return whether;
+   return journal[0];
 }
 
-bool shall_check_table(std::string text, Table& table)
+bool shall_check_table(
+   std::string text,
+   Table& table,
+   Journal& journal,
+   int head
+)
 {
-   char symbol = text[0];
+   char symbol = text[head];
    Group group = table[symbol];
    for (
       auto word_ = group.begin();
@@ -93,11 +83,10 @@ bool shall_check_table(std::string text, Table& table)
    {
       int size = word_->size();
       if (size > text.size()) { continue; }
-      if (text.compare(0, size, *word_) == 0)
+      if (text.compare(head, size, *word_) == 0)
       {
-         if (size == text.size()) { return true; }
-         std::string remain = text.substr(size, std::string::npos);
-         if (shall_check_table(remain, table)) { return true; }
+         if (size == text.size() - head) { return true; }
+         if (journal[head + size]) { return true; }
       }
    }
    return false;
