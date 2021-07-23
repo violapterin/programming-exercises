@@ -42,5 +42,5 @@ bool be_interleaved(
    std::string goal
 )
 {
-
+   return false;
 }
