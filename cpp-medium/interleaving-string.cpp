@@ -24,7 +24,7 @@ int main()
 {
    std::string this_string = "aabcc";
    std::string that_string = "dbbca";
-   std::string goal = "aadbbbaccc";
+   std::string goal = "aadbbcbcac";
    if (be_interleaved(this_string, that_string, goal))
    {
       std::cout << "Yes!" << std::endl;
@@ -33,7 +33,7 @@ int main()
    {
       std::cout << "No!" << std::endl;
    }
-   // "No!"
+   // "Yes!"
 }
 
 bool be_interleaved(
@@ -42,5 +42,47 @@ bool be_interleaved(
    std::string goal
 )
 {
+   //std::cout << "compare:" << this_string << ' ' << that_string << std::endl;
+   if (this_string.empty())
+   {
+      if (that_string == goal) { return true; }
+      else { return false; }
+   }
+   if (that_string.empty())
+   {
+      if (this_string == goal) { return true; }
+      else { return false; }
+   }
+   char start = goal[0];
+   char this_start = this_string[0];
+   char that_start = that_string[0];
+   std::string this_remain = this_string.substr(1);
+   std::string that_remain = that_string.substr(1);
+   std::string goal_remain = goal.substr(1);
+   bool whether_this = (start == this_start);
+   bool whether_that = (start == that_start);
+   if (!whether_this && !whether_that) { return false; }
+   else if (whether_this && !whether_that)
+   {
+      return be_interleaved(this_remain, that_string, goal_remain);
+   }
+   else if (!whether_this && whether_that)
+   {
+      return be_interleaved(this_string, that_remain, goal_remain);
+   }
+   else
+   {
+      bool be_this = be_interleaved(
+         this_string,
+         that_remain,
+         goal_remain
+      );
+      bool be_that = be_interleaved(
+         this_remain,
+         that_string,
+         goal_remain
+      );
+      return (be_this || be_that);
+   }
    return false;
 }
