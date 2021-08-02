@@ -12,20 +12,18 @@ it can trap after raining.
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <cassert>
 typedef std::vector<int> Rain;
 int find_index_biggest(Rain);
-int trap(Rain rain);
+int count_trap(Rain rain);
 
 int main()
 {
-   Rain v = {0,1,0,2,1,0,1,3,2,1,2,1};
-   std::cout << trap(v) << std::endl;
+   Rain v = {0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1};
+   std::cout << count_trap(v) << std::endl;
    // "6"
 }
 
-int trap(Rain rain)
+int count_trap(Rain rain)
 {
    if (rain.size() <= 2)
       return 0;
@@ -52,12 +50,12 @@ int trap(Rain rain)
       if (step >= 0)
          already += step;
    }
-   auto subrain = rain;
-   auto subleft = subrain.begin() + index_left;
-   auto subright = subrain.begin() + index_right;
-   subrain.erase(subleft, subright);
-   subrain[index_left] = surface;
-   int result = trap(subrain) + already;
+   auto part = rain;
+   auto left_ = part.begin() + index_left;
+   auto right_ = part.begin() + index_right;
+   part.erase(left_, right_);
+   part[index_left] = surface;
+   int result = count_trap(part) + already;
    return result;
 }
 
