@@ -22,10 +22,11 @@ on the projects without violating the rules mentioned above.
 */
 
 #include <iostream>
+#include <cstring>
 #include <vector>
-#include <set>
+#include <unordered_set>
 typedef std::vector<int> Queue;
-typedef std::set<Queue*> Record;
+typedef std::unordered_set<int*> Record;
 int find_number_round(Queue&);
 void increment_record(int, Queue&, Record&, Record&);
 int find_total(Queue&);
@@ -43,8 +44,8 @@ int find_number_round(Queue& bound)
    int size = bound.size();
    bound.insert(bound.begin(), 0);
    int total = find_total(bound);
-   Queue* initial = new Queue(Queue(size + 1, 0));
-   (*initial)[0] = -1;
+   int* initial = new int[size + 1]();
+   initial[0] = -1;
    Record antique;
    antique.insert(initial);
    int count = 0;
@@ -56,11 +57,11 @@ int find_number_round(Queue& bound)
       //std::cout << "novel size:" << novel.size() << std::endl;
       if (novel.empty()) { break; }
       for (
-         auto queue_ = antique.begin();
-         queue_ != antique.end(); queue_++
+         auto array_ = antique.begin();
+         array_ != antique.end(); array_++
       )
       {
-         delete (*queue_);
+         delete[] (*array_);
       }
       antique = novel;
       count = index;
@@ -76,18 +77,19 @@ void increment_record(
 )
 {
    for (
-      auto queue_ = antique.begin();
-      queue_ != antique.end(); queue_++
+      auto array_ = antique.begin();
+      array_ != antique.end(); array_++
    )
    {
-      int previous = (**queue_)[0];
+      int previous = (*array_)[0];
       for (int index = 1; index <= size; index++)
       {
          if (previous == index) { continue; }
-         if ((**queue_)[index] >= bound[index]) { continue; }
-         Queue* added = new Queue(**queue_);
-         (*added)[index] += 1;
-         (*added)[0] = index;
+         if ((*array_)[index] >= bound[index]) { continue; }
+         int* added = new int[size + 1];
+         memcpy(added, *array_, (size + 1) * sizeof(int));
+         added[index] += 1;
+         added[0] = index;
          novel.insert(added);
       }
    }
