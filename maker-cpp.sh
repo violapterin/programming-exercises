@@ -27,6 +27,6 @@ for path_in in $1/*; do
       fi
    fi
    set -x
-   g++ -std=c++11 -g -o "${path_out}" "${path_in}"
+   g++ -std=c++14 -g -o "${path_out}" "${path_in}"
    { set +x; } 2>/dev/null
 done

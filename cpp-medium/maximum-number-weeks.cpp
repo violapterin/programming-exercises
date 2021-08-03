@@ -22,85 +22,134 @@ on the projects without violating the rules mentioned above.
 */
 
 #include <iostream>
-#include <cstring>
+#include <algorithm>
 #include <vector>
 #include <unordered_set>
-typedef std::vector<int> Queue;
-typedef std::unordered_set<int*> Record;
-int find_number_round(Queue&);
-void increment_record(int, Queue&, Record&, Record&);
-int find_total(Queue&);
+typedef std::vector<int> Array;
+typedef std::pair<int, int> Pair;
+typedef std::vector<Pair> Queue;
+int find_number_round(Array&);
+int find_total(Array&);
 
 int main()
 {
-   Queue bound = {5, 2, 1};
+   //Array bound = {5, 2, 1};
+   Array bound = {5,7,5,7,9,7};
    int number = find_number_round(bound);
    std::cout << "There are " << number << " weeks." << std::endl;
    // 7
 }
 
-int find_number_round(Queue& bound)
+int find_number_round(Array& array)
 {
-   int size = bound.size();
-   bound.insert(bound.begin(), 0);
-   int total = find_total(bound);
-   int* initial = new int[size + 1]();
-   initial[0] = -1;
-   Record antique;
-   antique.insert(initial);
+   int size = array.size();
+   int total = find_total(array);
+   if (size == 1) { return array[0]; }
+   Queue queue;
    int count = 0;
-   for (int index = 1; index <= total; index++)
-   {
-      Record novel;
-      increment_record(size, bound, antique, novel);
-      //std::cout << "round:" << index << std::endl;
-      //std::cout << "novel size:" << novel.size() << std::endl;
-      if (novel.empty()) { break; }
-      for (
-         auto array_ = antique.begin();
-         array_ != antique.end(); array_++
-      )
-      {
-         delete[] (*array_);
-      }
-      antique = novel;
-      count = index;
-   }
-   return count;
-}
-
-void increment_record(
-   int size,
-   Queue& bound,
-   Record& antique,
-   Record& novel
-)
-{
    for (
-      auto array_ = antique.begin();
-      array_ != antique.end(); array_++
+      auto value_ = array.begin();
+      value_ != array.end(); value_++
    )
    {
-      int previous = (*array_)[0];
-      for (int index = 1; index <= size; index++)
-      {
-         if (previous == index) { continue; }
-         if ((*array_)[index] >= bound[index]) { continue; }
-         int* added = new int[size + 1];
-         memcpy(added, *array_, (size + 1) * sizeof(int));
-         added[index] += 1;
-         added[0] = index;
-         novel.insert(added);
-      }
+      queue.push_back(Pair(*value_, count));
+      count += 1;
    }
+   int small = 0;
+   int previous = -1;
+   auto order = [](auto &left, auto &right)
+   {
+      return left.first > right.first;
+   };
+   while (true)
+   {
+      std::sort(queue.begin(), queue.end(), order);
+      for (int head = 0; head < size; head++)
+      {
+         std::cout << '(' << queue[head].first << ',' << queue[head].second << ')' << ',';
+      }
+      std::cout << std::endl;
+      if (queue[1].first == 0)
+      //if (queue[1].first == 0 && previous == queue[0].second)
+      {
+         break;
+      }
+      if (queue[0].first == 0)
+      {
+         break;
+      }
+      queue[0].first -= queue[1].first;
+      queue[1].first = 0;
+      if (previous == queue[0].second) { previous = queue[1].second; }
+      if (previous == queue[1].second) { previous = queue[0].second; }
+      else
+      {
+         previous = queue[0].second;
+         /*
+         if (queue[0].first > 0)
+         {
+            queue[0].first -= 1;
+         }
+         */
+      }
+      std::cout << "previous:" << previous << std::endl;
+   }
+   std::sort(queue.begin(), queue.end(), order);
+   if (queue[0].first > 0)
+   //if (queue[0].first > 0 && previous != queue[0].second)
+   {
+      queue[0].first -= 1;
+   }
+   for (int head = 0; head < size; head++)
+   {
+      std::cout << '(' << queue[head].first << ',' << queue[head].second << ')' << ',';
+   }
+   std::cout << std::endl;
+   int remain = total - queue[0].first;
+   return remain;
 }
 
-int find_total(Queue& queue)
+int find_total(Array& array)
 {
    int amount = 0;
-   for (int index = 0; index < queue.size(); index++)
+   for (int index = 0; index < array.size(); index++)
    {
-      amount += queue[index];
+      amount += array[index];
    }
    return amount;
 }
+
+/*
+int find_number_round(Queue& queue)
+{
+   int size = queue.size();
+   int total = find_total(queue);
+   int small = 0;
+   if (size == 1) { return queue[0]; }
+
+   while (true)
+   {
+      std::sort(queue.begin(), queue.end(), std::greater<int>());
+      for (int head = 0; head < size; head++)
+      {
+         std::cout << queue[head] << ',';
+      }
+      std::cout << std::endl;
+      int small = 0;
+      if (queue[0] >= queue[1])
+      {
+         small = queue[1];
+      }
+      else
+      {
+         small = queue[0];
+      }
+      if (small == 0) { break; }
+      queue[1] -= small;
+      queue[0] -= small;
+   }
+   int remain = total - queue[0];
+   if (queue[0] > 0) { remain += 1; }
+   return remain;
+}
+*/
