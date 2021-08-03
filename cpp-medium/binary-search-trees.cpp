@@ -1,9 +1,9 @@
-// 96. Unique Binary Search Trees
+// 96. Unique Binary Search Trees [medium]
 /*
-   Given an integer `n`, return the number of structurally unique
-binary search trees which has exactly `n` nodes of unique values
-from `1` to `n`.
-   `1 <= n <= 19`
+   Given an integer `number`, return the number of structurally unique
+binary search trees which has exactly `number` nodes of unique values
+from `1` to `number`.
+   `1 <= number <= 19`
 */
 // Accepted August 3, 2021.
 
