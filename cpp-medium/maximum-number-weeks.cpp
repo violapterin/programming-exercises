@@ -25,7 +25,7 @@ on the projects without violating the rules mentioned above.
 #include <vector>
 #include <set>
 typedef std::vector<int> Queue;
-typedef std::set<Queue> Record;
+typedef std::set<Queue*> Record;
 int find_number_round(Queue&);
 void increment_record(int, Queue&, Record&, Record&);
 int find_total(Queue&);
@@ -43,17 +43,25 @@ int find_number_round(Queue& bound)
    int size = bound.size();
    bound.insert(bound.begin(), 0);
    int total = find_total(bound);
-   Queue initial = Queue(size + 1, 0);
-   initial[0] = -1;
-   Record antique = {initial};
+   Queue* initial = new Queue(Queue(size + 1, 0));
+   (*initial)[0] = -1;
+   Record antique;
+   antique.insert(initial);
    int count = 0;
    for (int index = 1; index <= total; index++)
    {
       Record novel;
-      std::cout << "round:" << index << std::endl;
       increment_record(size, bound, antique, novel);
-      std::cout << "novel size:" << novel.size() << std::endl;
+      //std::cout << "round:" << index << std::endl;
+      //std::cout << "novel size:" << novel.size() << std::endl;
       if (novel.empty()) { break; }
+      for (
+         auto queue_ = antique.begin();
+         queue_ != antique.end(); queue_++
+      )
+      {
+         delete (*queue_);
+      }
       antique = novel;
       count = index;
    }
@@ -72,20 +80,14 @@ void increment_record(
       queue_ != antique.end(); queue_++
    )
    {
-      std::cout << "element:";
-      for (int index = 1; index <= size; index++)
-      {
-         std::cout << (*queue_)[index] << ',';
-      }
-      std::cout << std::endl;
-      int previous = (*queue_)[0];
+      int previous = (**queue_)[0];
       for (int index = 1; index <= size; index++)
       {
          if (previous == index) { continue; }
-         Queue added = *queue_;
-         if (added[index] >= bound[index]) { continue; }
-         added[index] += 1;
-         added[0] = index;
+         if ((**queue_)[index] >= bound[index]) { continue; }
+         Queue* added = new Queue(**queue_);
+         (*added)[index] += 1;
+         (*added)[0] = index;
          novel.insert(added);
       }
    }
