@@ -13,7 +13,8 @@ as side lengths of a triangle.
 import typing as TYPE
 
 def main():
-   choice = [2, 2, 3, 4]
+   #choice = [2, 2, 3, 4]
+   choice = [48,66,61,46,94,75]
    solution = Solution()
    count = solution.count_triangle_number(choice)
    print("There are", count, "valid triplets.")
@@ -23,45 +24,36 @@ def main():
 class Solution:
 
    def count_triangle_number(self, choice: TYPE.List[int]) -> int:
-      choice.sort()
-      distinct = []
-      record = []
-      key = 0
-      cumulative = 0
-      for value in choice:
-         if (value == 0):
-            continue
-         self.push_distinct(distinct, value)
-         while (key < value):
-            record[key] = cumulative
-            key += 1
-         cumulative += 1
-         record[key] = cumulative
-      if (distinct.empty()):
+      choice = [value for value in choice if value != 0]
+      if not choice:
          return 0
-      while (key < distinct[-1] * 2):
-         record[key] = cumulative
-         key += 1
+      choice.sort()
+      record = dict()
+      for head in range(max(choice) * 2 + 1):
+         record[head] = sum([1 for value in choice if value <= head])
+      record[-1] = 0
+      distinct = list(set(choice))
+      distinct.sort()
       number = self.count_various(record, distinct)
       return number
 
    def count_various(self,
-      record: TYPE.List[int],
+      record: TYPE.Dict[int, int],
       distinct: TYPE.List[int]
    ) -> int:
       if not distinct:
          return 0
       small = distinct[0]
-      distinct = distinct[1:]
-      number_fixed = self.count_fixed(record, small, distinct)
-      number_partial = self.count_various(record, distinct)
+      partial = distinct[1:]
+      number_fixed = self.count_fixed(record, small, partial)
+      number_partial = self.count_various(record, partial)
       number = number_fixed + number_partial
-      return number
+      return int(number)
 
    def count_fixed(self,
-      record: TYPE.List[int],
+      record: TYPE.Dict[int, int],
       small: int,
-      distinct: TYPE.List[int],
+      distinct: TYPE.List[int]
    ) -> int:
       number = 0
       novel_small = record[small] - record[small - 1]
@@ -79,19 +71,10 @@ class Solution:
             continue
          total_above = record[bound] - record[value]
          add_distinct = total_above * novel_medium
-         add_pair_medium = novel_medium * (novel_medium - 1) / 2
+         add_pair_medium = self.pick_two(novel_medium)
          number += novel_small * (add_distinct + add_pair_medium)
-      return number
-
-   def push_distinct(self, choice: TYPE.List[int], value: int):
-      whether_update = False
-      if not choice:
-         whether_update = True
-      elif (choice[-1] < value):
-         whether_update = True
-      if (whether_update):
-         choice.append(value)
-
+      return int(number)
+   
    def pick_two(self, number: int) -> int:
       if (number < 2):
          return 0

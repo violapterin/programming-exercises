@@ -23,9 +23,10 @@ int pick_three(int);
 
 int main()
 {
-   Choice choice = {2, 2, 3, 4};
+   //Choice choice = {2, 2, 3, 4};
+   Choice choice = {48,66,61,46,94,75};
    int count = count_triangle_number(choice);
-   std::cout << "There are" << count << "valid triplets." << std::endl;
+   std::cout << "There are " << count << " valid triplets." << std::endl;
    // "3"
    /* (2,3,4), (2,3,4), (2,2,3) */
 }
@@ -79,7 +80,10 @@ int count_fixed(Record& record, int small, Choice& distinct)
    int novel_small = record[small] - record[small - 1];
    number += pick_three(novel_small);
    if (distinct.empty()) { return number; }
-   number += (record[small * 2 - 1] - record[small]) * pick_two(novel_small);
+   number += (
+      (record[small * 2 - 1] - record[small])
+      * pick_two(novel_small)
+   );
    for (
       auto value_ = distinct.begin();
       value_ != distinct.end(); value_++
@@ -90,7 +94,7 @@ int count_fixed(Record& record, int small, Choice& distinct)
       if (novel_medium == 0) { continue; }
       int total_above = record[bound] - record[*value_];
       int add_distinct = total_above * novel_medium;
-      int add_pair_medium = novel_medium * (novel_medium - 1) / 2;
+      int add_pair_medium = pick_two(novel_medium);
       number += novel_small * (add_distinct + add_pair_medium);
    }
    return number;
