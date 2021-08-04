@@ -24,6 +24,19 @@ typedef std::vector<Tuple> Many_tuple;
 Many_tuple find_combination(Tuple&, int);
 Many_tuple concatenate(Many_tuple, Many_tuple);
 void push_each(int, Many_tuple&);
+void print_many_tuple(Many_tuple);
+void print_tuple(Tuple);
+
+int main()
+{
+   Tuple choice = {2, 3, 5};
+   int target = 8;
+   Many_tuple many_tuple = find_combination(choice, target);
+   print_many_tuple(many_tuple);
+   // [2,2,2,2,]
+   // [2,3,3,]
+   // [3,5,]
+}
 
 Many_tuple find_combination(Tuple& choice, int target)
 {
@@ -89,13 +102,27 @@ Many_tuple concatenate(
    return whole;
 }
 
-int main()
+void print_many_tuple(Many_tuple many_tuple)
 {
-   Tuple choice = {2, 3, 5};
-   int target = 8;
-   Many_tuple many_tuple = find_combination(choice, target);
-   print_many_tuple(many_tuple);
-   // [2,2,2,2,]
-   // [2,3,3,]
-   // [3,5,]
+   for (
+      auto tuple_ = many_tuple.begin();
+      tuple_ != many_tuple.end(); tuple_++
+   )
+   {
+      print_tuple(*tuple_);
+   }
+}
+
+void print_tuple(Tuple tuple)
+{
+   std::cout << "[";
+   for (
+      auto value_ = tuple.begin();
+      value_ != tuple.end(); value_++
+   )
+   {
+      std::cout << *value_ << ",";
+   }
+   std::cout << "]";
+   std::cout << std::endl;
 }

@@ -1,5 +1,7 @@
-// 1953. Maximum Number of Weeks for Which You Can Work [medium]
-/*
+#! /usr/bin/env python3
+
+# 1953. Maximum Number of Weeks for Which You Can Work [medium]
+'''
    There are `size` projects numbered from `0` to `size - 1`. You
 are given an integer array milestones where each `milestones[index]`
 denotes the number of milestones the ith project has.
@@ -19,32 +21,28 @@ on the projects without violating the rules mentioned above.
    `size == milestones.length`
    `1 <= size <= 10^5`
    `1 <= milestones[index] <= 10^9`
-*/
-// Accepted August 5, 2021
+'''
+# Accepted August 5, 2021
 
-#include <iostream>
-#include <algorithm>
-#include <vector>
-typedef std::vector<int> Array;
-long long find_number_round(Array&);
+import typing as TYPE
 
-int main()
-{
-   Array bound = {5, 2, 1};
-   int number = find_number_round(bound);
-   std::cout << "There are " << number << " weeks." << std::endl;
-   // 7
-}
+def main():
+   bound = [5, 2, 1]
+   solution = Solution()
+   number = solution.find_number_round(bound)
+   print("There are", number, "weeks.")
+   # 7
 
-long long find_number_round(Array& array)
-{
-   long long total = 0;
-   for (int index = 0; index < array.size(); index++)
-   {
-      total += array[index];
-   }
-   int big = *(std::max_element(array.begin(), array.end()));
-   long long remain = total - big;
-   if (remain < big) { return total + remain - big + 1; }
-   return total;
-}
+class Solution:
+
+   def find_number_round(self, array: TYPE.List[int]) -> int:
+      total = sum(array)
+      big = max(array)
+      remain = total - big
+      if (remain < big):
+         return (total + remain - big + 1)
+      return total
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+main()

@@ -20,13 +20,14 @@ Many_tuple find_combination(Tuple&, int);
 Many_tuple concatenate(Many_tuple, Many_tuple);
 void push_each(int, Many_tuple&);
 Many_tuple prune_many_tuple(Many_tuple);
+void print_many_tuple(Many_tuple);
+void print_tuple(Tuple);
 
 int main()
 {
    Tuple choice = {10, 1, 2, 7, 6, 1, 5};
    int target = 8;
    Many_tuple many_tuple = find_combination(choice, target);
-   print_many_tuple(many_tuple);
    // [1,1,6,]
    // [1,2,5,]
    // [1,7,]
@@ -141,4 +142,29 @@ Many_tuple prune_many_tuple(Many_tuple repeated)
       }
    }
    return pruned;
+}
+
+void print_many_tuple(Many_tuple many_tuple)
+{
+   for (
+      auto tuple_ = many_tuple.begin();
+      tuple_ != many_tuple.end(); tuple_++
+   )
+   {
+      print_tuple(*tuple_);
+   }
+}
+
+void print_tuple(Tuple tuple)
+{
+   std::cout << "[";
+   for (
+      auto value_ = tuple.begin();
+      value_ != tuple.end(); value_++
+   )
+   {
+      std::cout << *value_ << ",";
+   }
+   std::cout << "]";
+   std::cout << std::endl;
 }

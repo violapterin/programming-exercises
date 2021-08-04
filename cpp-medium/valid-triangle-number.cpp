@@ -23,10 +23,9 @@ int pick_three(int);
 
 int main()
 {
-   Choice choice = {0, 1, 1, 1};
-   //Choice choice = {2, 2, 3, 4};
+   Choice choice = {2, 2, 3, 4};
    int count = count_triangle_number(choice);
-   std::cout << count << std::endl;
+   std::cout << "There are" << count << "valid triplets." << std::endl;
    // "3"
    /* (2,3,4), (2,3,4), (2,2,3) */
 }
