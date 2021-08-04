@@ -14,6 +14,7 @@ where they are divided into nonempty substrings such that:
    `0 <= s3.length <= 200`
    `s1`, `s2`, and `s3` consist of lowercase English letters.
 */
+// Accepted July 25, 2021
 
 #include <iostream>
 #include <string>
@@ -31,11 +32,6 @@ int main()
    std::string this_string = "ab";
    std::string that_string = "bc";
    std::string goal = "babc";
-   /*
-   std::string this_string = "aabcc";
-   std::string that_string = "dbbca";
-   std::string goal = "aadbbcbcac";
-   */
    if (be_interleaved(this_string, that_string, goal))
    {
       std::cout << "Yes!" << std::endl;
@@ -69,7 +65,6 @@ bool be_interleaved(
             limit
          );
          fill_record(text, record, present);
-         //std::cout << "result:" << (record[present] ? "true" : "false") << std::endl;
       }
    }
    Index final = std::make_tuple(
@@ -86,15 +81,9 @@ void fill_record(Text text, Record& record, Index present)
    std::string text_this = std::get<0>(text);
    std::string text_that = std::get<1>(text);
    std::string text_goal = std::get<2>(text);
-   //std::cout << "  goal:" << text_goal << std::endl;
-   //std::cout << "  this:" << text_this << std::endl;
-   //std::cout << "  that:" << text_that << std::endl;
    int index_this = std::get<0>(present);
    int index_that = std::get<1>(present);
    int index_goal = std::get<2>(present);
-   //std::cout << "  index goal:" << index_goal << std::endl;
-   //std::cout << "  index this:" << index_this << std::endl;
-   //std::cout << "  index that:" << index_that << std::endl;
    if (index_goal != index_this + index_that)
    {
       record[present] = false;
@@ -132,78 +121,3 @@ void fill_record(Text text, Record& record, Index present)
    }
 }
 
-   /*
-   if (index_goal == 0)
-   {
-      if (index_this != 0) { record[last] = false; }
-      else if (index_that != 0) { record[last] = false; }
-      else { record[last] = true; }
-      return;
-   }
-   Index next_this = std::make_tuple(
-      index_goal - 1,
-      index_this - 1,
-      index_that
-   );
-   fill_record(record, next_this);
-   Index next_that = std::make_tuple(
-      index_goal - 1,
-      index_this,
-      index_that - 1
-   );
-   fill_record(record, next_this);
-   */
-
-
-/*
-bool be_interleaved(
-   std::string this_string,
-   std::string that_string,
-   std::string goal
-)
-{
-   //std::cout << "compare:" << this_string << ' ' << that_string << std::endl;
-   if (this_string.empty())
-   {
-      if (that_string == goal) { return true; }
-      else { return false; }
-   }
-   if (that_string.empty())
-   {
-      if (this_string == goal) { return true; }
-      else { return false; }
-   }
-   char start = goal[0];
-   char this_start = this_string[0];
-   char that_start = that_string[0];
-   std::string this_remain = this_string.substr(1);
-   std::string that_remain = that_string.substr(1);
-   std::string goal_remain = goal.substr(1);
-   bool whether_this = (start == this_start);
-   bool whether_that = (start == that_start);
-   if (!whether_this && !whether_that) { return false; }
-   else if (whether_this && !whether_that)
-   {
-      return be_interleaved(this_remain, that_string, goal_remain);
-   }
-   else if (!whether_this && whether_that)
-   {
-      return be_interleaved(this_string, that_remain, goal_remain);
-   }
-   else
-   {
-      bool be_this = be_interleaved(
-         this_string,
-         that_remain,
-         goal_remain
-      );
-      bool be_that = be_interleaved(
-         this_remain,
-         that_string,
-         goal_remain
-      );
-      return (be_this || be_that);
-   }
-   return false;
-}
-*/

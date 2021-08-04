@@ -14,7 +14,7 @@ to `target` is less than `150` combinations for the given input.
    All elements of choice are distinct.
    `1 <= target <= 500`
 */
-// Accepted July 11, 2021.
+// Accepted July 11, 2021
 
 #include <iostream>
 #include <algorithm>
@@ -24,8 +24,6 @@ typedef std::vector<Tuple> Many_tuple;
 Many_tuple find_combination(Tuple&, int);
 Many_tuple concatenate(Many_tuple, Many_tuple);
 void push_each(int, Many_tuple&);
-void print_many_tuple(Many_tuple);
-void print_tuple(Tuple);
 
 Many_tuple find_combination(Tuple& choice, int target)
 {
@@ -89,31 +87,6 @@ Many_tuple concatenate(
       whole.push_back(*tuple_);
    }
    return whole;
-}
-
-void print_many_tuple(Many_tuple many_tuple)
-{
-   for (
-      auto tuple_ = many_tuple.begin();
-      tuple_ != many_tuple.end(); tuple_++
-   )
-   {
-      print_tuple(*tuple_);
-   }
-}
-
-void print_tuple(Tuple tuple)
-{
-   std::cout << "[";
-   for (
-      auto value_ = tuple.begin();
-      value_ != tuple.end(); value_++
-   )
-   {
-      std::cout << *value_ << ",";
-   }
-   std::cout << "]";
-   std::cout << std::endl;
 }
 
 int main()

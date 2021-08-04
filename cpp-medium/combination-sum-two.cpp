@@ -9,7 +9,7 @@ the candidate numbers sum to `target`.
    `1 <= choice[i] <= 50`
    `1 <= target <= 30`
 */
-// Accepted July 11, 2021.
+// Accepted July 11, 2021
 
 #include <iostream>
 #include <algorithm>
@@ -20,8 +20,6 @@ Many_tuple find_combination(Tuple&, int);
 Many_tuple concatenate(Many_tuple, Many_tuple);
 void push_each(int, Many_tuple&);
 Many_tuple prune_many_tuple(Many_tuple);
-void print_many_tuple(Many_tuple);
-void print_tuple(Tuple);
 
 int main()
 {
@@ -143,29 +141,4 @@ Many_tuple prune_many_tuple(Many_tuple repeated)
       }
    }
    return pruned;
-}
-
-void print_many_tuple(Many_tuple many_tuple)
-{
-   for (
-      auto tuple_ = many_tuple.begin();
-      tuple_ != many_tuple.end(); tuple_++
-   )
-   {
-      print_tuple(*tuple_);
-   }
-}
-
-void print_tuple(Tuple tuple)
-{
-   std::cout << "[";
-   for (
-      auto value_ = tuple.begin();
-      value_ != tuple.end(); value_++
-   )
-   {
-      std::cout << *value_ << ",";
-   }
-   std::cout << "]";
-   std::cout << std::endl;
 }

@@ -6,7 +6,7 @@ as side lengths of a triangle.
    `1 <= choice.length <= 1000`
    `0 <= choice[i] <= 1000`
 */
-// Accepted July 19, 2021.
+// Accepted July 19, 2021
 
 #include <iostream>
 #include <vector>

@@ -5,7 +5,7 @@ binary search trees which has exactly `number` nodes of unique values
 from `1` to `number`.
    `1 <= number <= 19`
 */
-// Accepted August 3, 2021.
+// Accepted August 3, 2021
 
 #include <iostream>
 #include <vector>

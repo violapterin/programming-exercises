@@ -17,9 +17,10 @@ constraints.
 on the projects without violating the rules mentioned above.
    Constraints:
    `size == milestones.length`
-   `1 <= size <= 105`
-   `1 <= milestones[index] <= 109`
+   `1 <= size <= 10^5`
+   `1 <= milestones[index] <= 10^9`
 */
+// Accepted August 5, 2021
 
 #include <iostream>
 #include <algorithm>
@@ -27,7 +28,7 @@ on the projects without violating the rules mentioned above.
 typedef std::vector<int> Array;
 //typedef std::pair<int, int> Pair;
 //typedef std::vector<Pair> Queue;
-int find_number_round(Array&);
+long long find_number_round(Array&);
 int find_start_greatest(Array&);
 void winnow(Array&);
 void decrease(Array&, int, int);
@@ -36,28 +37,45 @@ void print(Array&);
 
 int main()
 {
-   Array bound = {5, 2, 1};
+   Array bound = {3, 2, 1};
    int number = find_number_round(bound);
    std::cout << "There are " << number << " weeks." << std::endl;
    // 7
 }
 
-int find_number_round(Array& array)
+long long find_number_round(Array& array)
 {
    int size = array.size();
-   int total = find_total(array);
+   long long total = 0;
+   for (int index = 0; index < array.size(); index++)
+   {
+      total += array[index];
+   }
+   auto big_ = std::max_element(array.begin(), array.end());
+   int big = *big_;
+   array.erase(big_);
+   long long remain = total - big;
+   if (remain < big) { return total + remain - big + 1; }
+   return total;
+}
+
+/*
+long long find_number_round(Array& array)
+{
+   int size = array.size();
+   long long total = 0;
    if (size == 1)
    {
       if (array.front() > 0) { return 1; }
       else { return 0; }
    }
    std::sort(array.begin(), array.end(), std::less<int>());
-   print(array);
+   //print(array);
    while (true)
    {
       //std::sort(array.begin(), array.end(), std::less<int>());
       winnow(array);
-      if (!array.empty()) { print(array); }
+      //if (!array.empty()) { print(array); }
       int size = array.size();
       if (size <= 1) { break; }
       int start = find_start_greatest(array);
@@ -67,10 +85,12 @@ int find_number_round(Array& array)
          if (size % 2 == 0)
          {
             decrease(array, 0, size - 1);
+            total += size;
          }
          else
          {
             decrease(array, 0, size - 2);
+            total += size - 1;
          }
       }
       else
@@ -80,12 +100,18 @@ int find_number_round(Array& array)
          else { ruin = size - start; }
          decrease(array, 0, ruin - 1);
          decrease(array, start, start + ruin - 1);
+         total += ruin * 2;
       }
    }
    if (array.empty()) { return total; }
-   if (array.front() > 0) { array.front() -= 1; }
-   return total - array.back();
+   if (array.front() > 0)
+   {
+      array.front() -= 1;
+      total += 1;
+   }
+   return total;
 }
+*/
 
 int find_start_greatest(Array& array)
 {

@@ -11,7 +11,7 @@ times in the segmentation.
    `text` and `dictionary[i]` consist of only lowercase English letters.
    All the strings of `dictionary` are unique.
 */
-// Accepted July 22, 2021.
+// Accepted July 22, 2021
 
 #include <iostream>
 #include <string>

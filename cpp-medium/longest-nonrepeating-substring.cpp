@@ -5,7 +5,7 @@ without repeating characters.
    `0 <= s.length <= 5 * 10^4`
    `s` consists of English letters, digits, symbols and spaces.
 */
-// Accepted July 18, 2021.
+// Accepted July 18, 2021
 
 #include <iostream>
 #include <string>
@@ -40,7 +40,6 @@ Record update_record(char symbol_new, Record record_old)
    int size_detached = std::get<0>(record_old);
    int size_connected = std::get<1>(record_old);
    std::string series = std::get<2>(record_old);
-   //std::cout << "series:" << series << std::endl;
    int cut = series.find_last_of(symbol_new);
    std::string previous;
    if (cut != std::string::npos)
@@ -52,12 +51,8 @@ Record update_record(char symbol_new, Record record_old)
       previous = series;
    }
    series = previous + symbol_new;
-   //std::cout << "symbol_new:" << symbol_new << std::endl;
-   //std::cout << "previous:" << previous << std::endl;
-   //std::cout << "series:" << series << std::endl;
    size_connected = series.size();
    if (size_detached < size_connected) { size_detached = size_connected; }
-   //std::cout << "detached:" << size_detached << std::endl;
    Record record_new = std::make_tuple(
       size_detached,
       size_connected,

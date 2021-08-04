@@ -7,7 +7,7 @@ How many possible unique paths are there?
    `1 <= m, n <= 100`
    The answer will be less than or equal to `2 * 10^9`.
 */
-// Accepted July 4, 2021.
+// Accepted July 4, 2021
 
 #include <iostream>
 #include <vector>

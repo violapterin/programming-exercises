@@ -13,7 +13,7 @@ false. Assume both players play optimally.
    `1 <= bound_upper <= 20`
    `0 <= goal <= 300`
 */
-// Accepted March 1, 2021.
+// Accepted March 1, 2021
 
 #include <iostream>
 #include <unordered_map>
