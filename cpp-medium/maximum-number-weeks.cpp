@@ -30,18 +30,17 @@ typedef std::vector<int> Array;
 int find_number_round(Array&);
 int find_start_greatest(Array&);
 void winnow(Array&);
+void decrease(Array&, int, int);
 int find_total(Array&);
 void print(Array&);
 
 int main()
 {
    Array bound = {5, 2, 1};
-   //Array bound = {1,10,7,1,7,2,10,10,1000};
    int number = find_number_round(bound);
    std::cout << "There are " << number << " weeks." << std::endl;
    // 7
 }
-
 
 int find_number_round(Array& array)
 {
@@ -54,48 +53,37 @@ int find_number_round(Array& array)
    }
    std::sort(array.begin(), array.end(), std::less<int>());
    print(array);
-   winnow(array);
    while (true)
    {
-      std::sort(array.begin(), array.end(), std::less<int>());
+      //std::sort(array.begin(), array.end(), std::less<int>());
+      winnow(array);
+      if (!array.empty()) { print(array); }
       int size = array.size();
       if (size <= 1) { break; }
       int start = find_start_greatest(array);
-      int ruin;
-      if (start < size - start + 1) { ruin = start; }
-      else { ruin = size - start + 1; }
-      for (int head = 0; head <= ruin - 1; head++)
+      //std::cout << "start:" << start << std::endl;
+      if (start == 0)
       {
-         array[head] -= 1;
+         if (size % 2 == 0)
+         {
+            decrease(array, 0, size - 1);
+         }
+         else
+         {
+            decrease(array, 0, size - 2);
+         }
       }
-      for (int head = start; head <= size - 1; head++)
+      else
       {
-         array[head] -= 1;
+         int ruin;
+         if (start < size - start) { ruin = start; }
+         else { ruin = size - start; }
+         decrease(array, 0, ruin - 1);
+         decrease(array, start, start + ruin - 1);
       }
-      array.back() -= ruin;
-      winnow(array);
-      if (!array.empty()) { print(array); }
    }
-   /*
-   while (true)
-   {
-      int size = array.size();
-      if (size <= 1) { break; }
-      std::sort(array.begin(), array.end(), std::less<int>());
-      int ruin;
-      if (array[0] < size - 1) { ruin = array[0]; }
-      else { ruin = size - 1; }
-      array[0] -= ruin;
-      for (int head = size - ruin; head <= size - 1; head++)
-      {
-         array[head] -= 1;
-      }
-      winnow(array);
-      if (!array.empty()) { print(array); }
-   }
-   */
    if (array.empty()) { return total; }
-   if (array.back() > 0) { array.back() -= 1; }
+   if (array.front() > 0) { array.front() -= 1; }
    return total - array.back();
 }
 
@@ -106,7 +94,7 @@ int find_start_greatest(Array& array)
    while (true)
    {
       if (head == 0) { break; }
-      if (array[head] < hold) { break; }
+      if (head >= 1 && array[head - 1] < hold) { break; }
       head -= 1;
    }
    return head;
@@ -116,9 +104,23 @@ void winnow(Array& array)
 {
    while (true)
    {
-      if (array.empty()) { break; }
+      if (array.empty()) { return; }
+      if (array.back() != 0) { break; }
+      array.pop_back();
+   }
+   while (true)
+   {
+      if (array.empty()) { return; }
       if (array.front() != 0) { break; }
       array.erase(array.begin());
+   }
+}
+
+void decrease(Array& array, int start, int stop)
+{
+   for(int head = start; head <= stop; head++)
+   {
+      array[head] -= 1;
    }
 }
 
@@ -141,72 +143,3 @@ void print(Array& array)
    std::cout << std::endl;
 }
 
-/*
-int find_number_round(Array& array)
-{
-   int size = array.size();
-   int total = find_total(array);
-   if (size == 1) { return array[0]; }
-   Queue queue;
-   int count = 0;
-   for (
-      auto value_ = array.begin();
-      value_ != array.end(); value_++
-   )
-   {
-      queue.push_back(Pair(*value_, count));
-      count += 1;
-   }
-   int small = 0;
-   int previous = -1;
-   auto order = [](auto &left, auto &right)
-   {
-      return left.first > right.first;
-   };
-   while (true)
-   {
-      std::sort(queue.begin(), queue.end(), order);
-      for (int head = 0; head < size; head++)
-      {
-         std::cout << '(' << queue[head].first << ',' << queue[head].second << ')' << ',';
-      }
-      std::cout << std::endl;
-      if (queue[1].first == 0)
-      //if (queue[1].first == 0 && previous == queue[0].second)
-      {
-         break;
-      }
-      if (queue[0].first == 0)
-      {
-         break;
-      }
-      queue[0].first -= queue[1].first;
-      queue[1].first = 0;
-      if (previous == queue[0].second) { previous = queue[1].second; }
-      if (previous == queue[1].second) { previous = queue[0].second; }
-      else
-      {
-         previous = queue[0].second;
-         if (queue[0].first > 0)
-         {
-            queue[0].first -= 1;
-         }
-      }
-      std::cout << "previous:" << previous << std::endl;
-   }
-   std::sort(queue.begin(), queue.end(), order);
-   if (queue[0].first > 0)
-   //if (queue[0].first > 0 && previous != queue[0].second)
-   {
-      queue[0].first -= 1;
-   }
-   for (int head = 0; head < size; head++)
-   {
-      std::cout << '(' << queue[head].first << ',' << queue[head].second << ')' << ',';
-   }
-   std::cout << std::endl;
-   int remain = total - queue[0].first;
-   return remain;
-}
-
-*/
