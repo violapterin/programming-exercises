@@ -24,16 +24,19 @@ on the projects without violating the rules mentioned above.
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <unordered_set>
 typedef std::vector<int> Array;
-typedef std::pair<int, int> Pair;
-typedef std::vector<Pair> Queue;
+//typedef std::pair<int, int> Pair;
+//typedef std::vector<Pair> Queue;
 int find_number_round(Array&);
+int find_start_greatest(Array&);
+void winnow(Array&);
 int find_total(Array&);
+void print(Array&);
 
 int main()
 {
-   Array bound = {3, 2, 1};
+   Array bound = {5, 2, 1};
+   //Array bound = {1,10,7,1,7,2,10,10,1000};
    int number = find_number_round(bound);
    std::cout << "There are " << number << " weeks." << std::endl;
    // 7
@@ -46,27 +49,77 @@ int find_number_round(Array& array)
    int total = find_total(array);
    if (size == 1)
    {
-      if (array[0] > 0) { return 1; }
+      if (array.front() > 0) { return 1; }
       else { return 0; }
    }
+   std::sort(array.begin(), array.end(), std::less<int>());
+   print(array);
+   winnow(array);
    while (true)
    {
-      std::sort(array.begin(), array.end(), std::greater<int>());
-      for (int head = 0; head < size; head++)
+      std::sort(array.begin(), array.end(), std::less<int>());
+      int size = array.size();
+      if (size <= 1) { break; }
+      int start = find_start_greatest(array);
+      int ruin;
+      if (start < size - start + 1) { ruin = start; }
+      else { ruin = size - start + 1; }
+      for (int head = 0; head <= ruin - 1; head++)
       {
-         std::cout << array[head] << ',';
+         array[head] -= 1;
       }
-      std::cout << std::endl;
-      if (array[0] != 0 && array[1] != 0)
+      for (int head = start; head <= size - 1; head++)
       {
-         array[0] -= 1;
-         array[1] -= 1;
+         array[head] -= 1;
       }
-      else { break; }
+      array.back() -= ruin;
+      winnow(array);
+      if (!array.empty()) { print(array); }
    }
-   if (array[0] > 0) { array[0] -= 1; }
-   int remain = total - array[0];
-   return remain;
+   /*
+   while (true)
+   {
+      int size = array.size();
+      if (size <= 1) { break; }
+      std::sort(array.begin(), array.end(), std::less<int>());
+      int ruin;
+      if (array[0] < size - 1) { ruin = array[0]; }
+      else { ruin = size - 1; }
+      array[0] -= ruin;
+      for (int head = size - ruin; head <= size - 1; head++)
+      {
+         array[head] -= 1;
+      }
+      winnow(array);
+      if (!array.empty()) { print(array); }
+   }
+   */
+   if (array.empty()) { return total; }
+   if (array.back() > 0) { array.back() -= 1; }
+   return total - array.back();
+}
+
+int find_start_greatest(Array& array)
+{
+   int hold = array.back();
+   int head = array.size() - 1;
+   while (true)
+   {
+      if (head == 0) { break; }
+      if (array[head] < hold) { break; }
+      head -= 1;
+   }
+   return head;
+}
+
+void winnow(Array& array)
+{
+   while (true)
+   {
+      if (array.empty()) { break; }
+      if (array.front() != 0) { break; }
+      array.erase(array.begin());
+   }
 }
 
 int find_total(Array& array)
@@ -77,6 +130,15 @@ int find_total(Array& array)
       amount += array[index];
    }
    return amount;
+}
+
+void print(Array& array)
+{
+   for (int head = 0; head < array.size(); head++)
+   {
+      std::cout << array[head] << ',';
+   }
+   std::cout << std::endl;
 }
 
 /*
