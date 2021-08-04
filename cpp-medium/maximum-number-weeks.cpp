@@ -33,13 +33,53 @@ int find_total(Array&);
 
 int main()
 {
-   //Array bound = {5, 2, 1};
-   Array bound = {5,7,5,7,9,7};
+   Array bound = {3, 2, 1};
    int number = find_number_round(bound);
    std::cout << "There are " << number << " weeks." << std::endl;
    // 7
 }
 
+
+int find_number_round(Array& array)
+{
+   int size = array.size();
+   int total = find_total(array);
+   if (size == 1)
+   {
+      if (array[0] > 0) { return 1; }
+      else { return 0; }
+   }
+   while (true)
+   {
+      std::sort(array.begin(), array.end(), std::greater<int>());
+      for (int head = 0; head < size; head++)
+      {
+         std::cout << array[head] << ',';
+      }
+      std::cout << std::endl;
+      if (array[0] != 0 && array[1] != 0)
+      {
+         array[0] -= 1;
+         array[1] -= 1;
+      }
+      else { break; }
+   }
+   if (array[0] > 0) { array[0] -= 1; }
+   int remain = total - array[0];
+   return remain;
+}
+
+int find_total(Array& array)
+{
+   int amount = 0;
+   for (int index = 0; index < array.size(); index++)
+   {
+      amount += array[index];
+   }
+   return amount;
+}
+
+/*
 int find_number_round(Array& array)
 {
    int size = array.size();
@@ -85,12 +125,10 @@ int find_number_round(Array& array)
       else
       {
          previous = queue[0].second;
-         /*
          if (queue[0].first > 0)
          {
             queue[0].first -= 1;
          }
-         */
       }
       std::cout << "previous:" << previous << std::endl;
    }
@@ -109,47 +147,4 @@ int find_number_round(Array& array)
    return remain;
 }
 
-int find_total(Array& array)
-{
-   int amount = 0;
-   for (int index = 0; index < array.size(); index++)
-   {
-      amount += array[index];
-   }
-   return amount;
-}
-
-/*
-int find_number_round(Queue& queue)
-{
-   int size = queue.size();
-   int total = find_total(queue);
-   int small = 0;
-   if (size == 1) { return queue[0]; }
-
-   while (true)
-   {
-      std::sort(queue.begin(), queue.end(), std::greater<int>());
-      for (int head = 0; head < size; head++)
-      {
-         std::cout << queue[head] << ',';
-      }
-      std::cout << std::endl;
-      int small = 0;
-      if (queue[0] >= queue[1])
-      {
-         small = queue[1];
-      }
-      else
-      {
-         small = queue[0];
-      }
-      if (small == 0) { break; }
-      queue[1] -= small;
-      queue[0] -= small;
-   }
-   int remain = total - queue[0];
-   if (queue[0] > 0) { remain += 1; }
-   return remain;
-}
 */
