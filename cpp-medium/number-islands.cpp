@@ -1,10 +1,15 @@
 // 200. Number of Islands [medium]
 /*
-   Given an `height` by `width` planar binary grid which represents
-a map of '1' (land) and '0' (water), return the number of islands.
+   Given an `height` by `width` planar binary grid `grid`, which
+represents a map of '1' (land) and '0' (water), return the number
+of islands.
    An island is surrounded by water and is formed by connecting
 adjacent lands horizontally or vertically. You may assume all four
 edges of the grid are all surrounded by water.
+   Constraints:
+   `1 <= grid.length, grid[i].length <= 300`.
+   `grid[i][j]` is '0' or '1'.
+
 */
 
 #include <iostream>
@@ -19,6 +24,7 @@ int count_island(Chart&);
 void spread(Tree&, int, Mark&);
 void initialize_tree(Chart&, Tree&);
 void initialize_mark(Chart&, Mark&);
+bool read(Chart&, int);
 
 int main()
 {
@@ -32,7 +38,6 @@ int main()
    // "3"
 }
 
-
 int count_island(Chart& chart)
 {
    Tree tree;
@@ -44,8 +49,7 @@ int count_island(Chart& chart)
    int total = chart.size() * chart[0].size();
    while (present < total)
    {
-      if (chart[present] == '0') { continue; }
-      if (!mark[present])
+      if (read(chart, present) && !mark[present])
       {
          count += 1;
          mark[present] = true;
@@ -83,9 +87,9 @@ void initialize_tree(Chart& chart, Tree& tree)
 {
    int height = chart.size();
    int width = chart[0].size();
-   for (int row = 0; row < chart.size(); row++)
+   for (int row = 0; row < height; row++)
    {
-      for (int column = 0; column < chart[row].size(); column++)
+      for (int column = 0; column < width; column++)
       {
          tree.push_back(Node());
       }
@@ -96,7 +100,7 @@ void initialize_tree(Chart& chart, Tree& tree)
       {
          int last = row * width + column;
          int next = (row + 1) * width + column;
-         if (chart[row][column] == '1' && chart[row + 1][column] == '1')
+         if (read(chart, last) && read(chart, next))
          {
             tree[last].insert(next);
             tree[next].insert(last);
@@ -109,7 +113,7 @@ void initialize_tree(Chart& chart, Tree& tree)
       {
          int last = row * width + column;
          int next = row * width + column + 1;
-         if (chart[row][column] == '1' && chart[row][column + 1] == '1')
+         if (read(chart, last) && read(chart, next))
          {
             tree[last].insert(next);
             tree[next].insert(last);
@@ -125,10 +129,20 @@ void initialize_mark(Chart& chart, Mark& mark)
    mark.reserve(height * width);
    for (int row = 0; row < height; row++)
    {
-      for (int column = 0; column + 1 < width; column++)
+      for (int column = 0; column < width; column++)
       {
          int index = row * width + column;
          mark[index] = false;
       }
    }
+}
+
+bool read(Chart& chart, int present)
+{
+   int height = chart.size();
+   int width = chart[0].size();
+   int row = present / width;
+   int column = present % width;
+   if (chart[row][column] == '1') { return true; }
+   return false;
 }
