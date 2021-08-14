@@ -8,7 +8,7 @@ a distinct board configuration of the `n` queens' placement, where
 `'Q'` and `'.'` both indicate a queen and an empty space, respectively.
    `1 <= n <= 9`
 */
-// Accepted July 2, 2021.
+// Accepted July 2, 2021
 
 #include <iostream>
 #include <string>

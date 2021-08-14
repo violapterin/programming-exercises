@@ -9,7 +9,7 @@ return it modulo `10^9 + 7`.
    `1 <= m <= 5`
    `1 <= n <= 1000`
 */
-// Accepted July 14, 2021.
+// Accepted July 14, 2021
 
 #include <iostream>
 #include <string>
