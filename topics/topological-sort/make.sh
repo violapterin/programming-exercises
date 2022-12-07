@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
 TITLE=topological-sort
-rm -f "${TITLE}"
+DEBUG=${TITLE}-debug
+rm -f "${TITLE}" "${DEBUG}"
 gcc -o "${TITLE}" "${TITLE}".c
+gcc -g -o "${DEBUG}" "${TITLE}".c
