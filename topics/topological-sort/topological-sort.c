@@ -12,28 +12,45 @@ void construct_graph(int, char* , bool**);
 void feed_vertex(int, char*, bool**);
 int find_maximum_numeral(int, char*);
 
-// argv[0]: input filename
-// argv[1]: flag
+
+// argv[1]: input filename
+// argv[2]: flag
 int main(int argc, char** argv)
 {
-   char source[LIMIT_LENGTH];
-   FILE* document = fopen(argv[0], "r");
-   fgets(source, LIMIT_LENGTH, document);
-   fclose(document);
+   // //    stackoverflow.com/questions/11793689/
+   // //    read-the-entire-contents-of-a-file-to-c-char-including-new-lines
+   FILE *stream;
+   char *content;
+   stream = fopen(argv[1], "r");
+   fseek(stream, 0, SEEK_END);
+   int size_file = ftell(stream);
+   fseek(stream, 0L, SEEK_SET);
+   content = malloc(size_file + 1);
+   size_t length = fread(content, 1, size_file, stream);
+   content[length] = 0;
+   // printf("content:\n%s", content);
+   fclose(stream);
 
-   int length = strlen(source);
-   int number_vertex = find_maximum_numeral(length, source);
+   int number_vertex = find_maximum_numeral(length, content);
+
+   /*
    bool* graph[number_vertex];
+   printf("number vertex: %d", number_vertex);
    for (int row = 0; row <= number_vertex - 1; row++)
       graph[row] = (bool*) malloc(number_vertex * sizeof(bool));
    for (int row = 0; row <= number_vertex - 1; row++)
-      for (int column = 0; column <= number_vertex - 1; column++)
+      for (int column = 0; column <= number_vertex - 1; column++) {
+         printf("constructing row %d column %d:\n", row, column);
          graph[row][column] = false;
+      }
+   */
 
-   construct_graph(length, source, graph);
+   /*
+   construct_graph(length, content, graph);
 
-   int flag = strtol(argv[1], NULL, 1);
+   int flag = strtol(argv[2], NULL, 1);
    sort_topological(flag, number_vertex, graph);
+   */
 }
 
 void sort_topological(int flag, int number_vertex, bool** graph)
@@ -148,6 +165,7 @@ int find_maximum_numeral(int length, char* source)
    int count = 0;
    char* left = source;
    char* right = source;
+   printf("right:%s", *right);
    while (count != length) {
       if (isalnum(*right)) {
          right += 1;
