@@ -35,7 +35,6 @@ int main(int argc, char** argv)
    char content[LIMIT_LENGTH_LINE];
    int maximum = 0;
    while (fgets(content, LIMIT_LENGTH_LINE, stream_file) != NULL) {
-      printf("content:%s\n", content);
       int hold = find_maximum_numeral(content);
       if (hold > maximum)
          maximum = hold;
@@ -43,12 +42,11 @@ int main(int argc, char** argv)
    fclose(stream_file);
 
    bool* graph[maximum];
-   printf("number vertex: %d", maximum);
+   printf("number vertex: %d\n", maximum);
    for (int row = 0; row <= maximum - 1; row++)
       graph[row] = (bool*) malloc(maximum * sizeof(bool));
    for (int row = 0; row <= maximum - 1; row++)
       for (int column = 0; column <= maximum - 1; column++) {
-         printf("constructing row %d column %d:\n", row, column);
          graph[row][column] = false;
       }
 
@@ -57,10 +55,8 @@ int main(int argc, char** argv)
       construct_vertex(content, graph);
    fclose(stream_file);
 
-   /*
    int flag = strtol(argv[2], NULL, 1);
    sort_topological(flag, maximum, graph);
-   */
 }
 
 void sort_topological(int flag, int maximum, bool** graph)
@@ -105,7 +101,7 @@ void sort_topological(int flag, int maximum, bool** graph)
          printf("cycle!");
          break;
       }
-      printf("vertex:%d\n", target);
+      printf("vertex:%d\n", target + 1); // // 1 based
       for (int row = 0; row <= maximum - 1; row++)
          graph[row][target] = false;
       active[target] = false;
@@ -114,6 +110,7 @@ void sort_topological(int flag, int maximum, bool** graph)
 
 void construct_vertex(char* source, bool** graph)
 {
+   printf("source: %s", source);
    int count = 0;
    int length = strlen(source);
    char* left = source;
@@ -128,25 +125,26 @@ void construct_vertex(char* source, bool** graph)
       count += 1;
    }
    int numeral_main = strtol(left, NULL, 10);
-   while (!isalnum(*left)) {
-      left += 1;
-      count += 1;
-   }
-   right = left;
+   left = right + 1;
+   count += 1;
    while (count != length - 1) {
-      if (isalnum(*right)) {
+      while (!isalnum(*left)) {
+         left += 1;
+         count += 1;
+         continue;
+      }
+      right = left;
+      while (isalnum(*right)) {
          right += 1;
          count += 1;
          continue;
       }
       int numeral_another = strtol(left, NULL, 10);
-      graph[numeral_main][numeral_another] = true;
+      printf("constructing edge %d, %d:\n", numeral_main, numeral_another);
+      graph[numeral_main - 1][numeral_another - 1] = true; // // 0 based
       left = right + 1;
-      while (!isalnum(*left)) {
-         left += 1;
-         count += 1;
-      }
       right = left;
+      count += 1;
    }
 }
 
@@ -154,7 +152,6 @@ int find_maximum_numeral(char* source)
 {
    int count = 0;
    int length = strlen(source);
-   printf("length:%d\n", length);
    int maximum = 0;
    char* left = source;
    char* right = source;
@@ -164,19 +161,17 @@ int find_maximum_numeral(char* source)
          count += 1;
          continue;
       }
-      if (isalnum(*right)) {
+      while (isalnum(*right)) {
          right += 1;
          count += 1;
          continue;
       }
       int hold = strtol(left, NULL, 10);
-      printf("hold:%d\n", hold);
       if (hold > maximum)
          maximum = hold;
       left = right + 1;
       right = left;
       count += 1;
-      continue;
    }
    return maximum;
 }
