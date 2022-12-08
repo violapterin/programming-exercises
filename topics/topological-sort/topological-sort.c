@@ -9,18 +9,23 @@
 #define FLAG_COMPLEXITY_RESULT_TERMINAL 2
 #define FLAG_COMPLEXITY_RESULT_FILE 3
 
-void sort_topological(int, int, bool**);
+void sort_topological(int, int, int*, bool**);
 void construct_vertex(char* , bool**);
 int find_maximum_numeral(char*);
-int count_true(int, bool*);
 void print_graph(int, bool**); // XXX
 
 // argv[0]: program name
-// argv[1]: input filename
-// argv[2]: flag
+// argv[1]: flag
+// argv[2]: input filename
+// argv[3]: output filename
 int main(int argc, char** argv)
 {
-   FILE* stream_file = fopen(argv[1], "r");
+   char* string_program = argv[0];
+   char* string_flag = argv[1];
+   char* string_input = argv[2];
+   char* string_output = argv[3];
+
+   FILE* stream_file = fopen(string_input, "r");
    char content[LIMIT_LENGTH_LINE];
    int maximum = 0;
    while (fgets(content, LIMIT_LENGTH_LINE, stream_file) != NULL) {
@@ -38,17 +43,21 @@ int main(int argc, char** argv)
          graph[row][column] = false;
       }
 
-   stream_file = fopen(argv[1], "r");
+   stream_file = fopen(string_input, "r");
    while (fgets(content, LIMIT_LENGTH_LINE, stream_file) != NULL)
       construct_vertex(content, graph);
    fclose(stream_file);
 
-   print_graph(maximum, graph); // XXX
-   int flag = strtol(argv[2], NULL, 1);
-   sort_topological(flag, maximum, graph);
+   // print_graph(maximum, graph); // XXX
+   int complexity[maximum];
+   for (int row = 0; row <= maximum - 1; row++)
+      for (int column = 0; column <= maximum - 1; column++)
+         complexity[row] = 0;
+   int flag = strtol(string_flag, NULL, 1);
+   sort_topological(flag, maximum, complexity, graph);
 }
 
-void sort_topological(int flag, int maximum, bool** graph)
+void sort_topological(int flag, int maximum, int* complexity, bool** graph)
 {
    bool active[maximum];
    for (int row = 0; row <= maximum - 1; row++)
@@ -62,10 +71,16 @@ void sort_topological(int flag, int maximum, bool** graph)
       }
 
    while (true) {
-      int active_past = count_true(maximum, active);
-      printf("active past:%d\n", active_past);
+      int trivial = true;
+      for (int column = 0; column <= maximum - 1; column++)
+         if (active[column]) {
+            trivial = false;
+            break;
+         }
+      if (trivial)
+         break;
 
-      int target = 0;
+      int target = -1;
       for (int column = 0; column <= maximum - 1; column++) {
          if (!active[column])
             continue;
@@ -75,18 +90,17 @@ void sort_topological(int flag, int maximum, bool** graph)
                with_arrival = true;
                break;
             }
-         if (!with_arrival) {
+         if (!with_arrival)
             target = column;
-         }
       }
-      printf("removing vertex:%d\n", target + 1); // // 1 based
-      for (int row = 0; row <= maximum - 1; row++)
-         graph[row][target] = false;
-      active[target] = false;
 
-      int active_current = count_true(maximum, active);
-      printf("active current:%d\n", active_current);
-      if (active_current == active_past) {
+      if (target != -1) {
+         printf("vertex: %d\n", target + 1); // // 1 based
+         for (int column = 0; column <= maximum - 1; column++)
+            graph[target][column] = false;
+         active[target] = false;
+      }
+      else {
          printf("cycle!\n");
          break;
       }
@@ -159,15 +173,6 @@ int find_maximum_numeral(char* source)
       count += 1;
    }
    return maximum;
-}
-
-int count_true(int maximum, bool* array)
-{
-   int active = 0;
-   for (int column = 0; column <= maximum - 1; column++)
-      if (array[column])
-         active += 1;
-   return active;
 }
 
 void print_graph(int maximum, bool** graph)
