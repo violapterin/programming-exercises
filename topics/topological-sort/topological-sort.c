@@ -126,7 +126,7 @@ void construct_vertex(char* source, bool** graph)
    int numeral_main = strtol(left, NULL, 10);
    left = right + 1;
    count += 1;
-   while (count != length - 1) {
+   while (count <= length - 1) {
       while (!isalnum(*left)) {
          left += 1;
          count += 1;
@@ -154,7 +154,9 @@ int find_maximum_numeral(char* source)
    int maximum = 0;
    char* left = source;
    char* right = source;
-   while (count != length - 1) {
+   //printf("length:%d\n", length);
+   while (count <= length - 1) {
+      //printf("count:%d\n", count);
       while (!isalnum(*left)) {
          left += 1;
          count += 1;
