@@ -1,0 +1,46 @@
+sorted vertex: 17
+sorted vertex: 12
+sorted vertex: 10
+cycle!
+instructions for vertex 0: 73
+instructions for vertex 1: 73
+instructions for vertex 2: 61
+instructions for vertex 3: 45
+instructions for vertex 4: 37
+instructions for vertex 5: 33
+instructions for vertex 6: 25
+instructions for vertex 7: 21
+instructions for vertex 8: 17
+instructions for vertex 9: 13
+instructions for vertex 10: 14
+instructions for vertex 11: 10
+instructions for vertex 12: 12
+instructions for vertex 13: 12
+instructions for vertex 14: 11
+instructions for vertex 15: 11
+instructions for vertex 16: 8
+instructions for vertex 17: 11
+instructions for vertex 18: 11
+instructions for vertex 19: 11
+instructions for edge (0, 0): 4
+instructions for edge (0, 1): 4
+instructions for edge (2, 10): 4
+instructions for edge (2, 12): 4
+instructions for edge (2, 15): 4
+instructions for edge (3, 2): 4
+instructions for edge (3, 13): 4
+instructions for edge (3, 18): 4
+instructions for edge (3, 19): 4
+instructions for edge (4, 14): 4
+instructions for edge (4, 17): 4
+instructions for edge (5, 4): 4
+instructions for edge (6, 5): 4
+instructions for edge (6, 8): 4
+instructions for edge (7, 6): 4
+instructions for edge (8, 7): 4
+instructions for edge (9, 3): 3
+instructions for edge (11, 9): 2
+instructions for edge (14, 3): 1
+total instructions on vertices: 400
+total instructions on edges: 400
+total instructions: 800

@@ -1,0 +1,128 @@
+sorted vertex: 18
+sorted vertex: 16
+sorted vertex: 54
+sorted vertex: 14
+cycle!
+instructions for vertex 0: 159
+instructions for vertex 1: 139
+instructions for vertex 2: 139
+instructions for vertex 3: 119
+instructions for vertex 4: 89
+instructions for vertex 5: 84
+instructions for vertex 6: 44
+instructions for vertex 7: 29
+instructions for vertex 8: 29
+instructions for vertex 9: 29
+instructions for vertex 10: 29
+instructions for vertex 11: 29
+instructions for vertex 12: 29
+instructions for vertex 13: 28
+instructions for vertex 14: 29
+instructions for vertex 15: 20
+instructions for vertex 16: 23
+instructions for vertex 17: 18
+instructions for vertex 18: 22
+instructions for vertex 19: 22
+instructions for vertex 20: 22
+instructions for vertex 21: 19
+instructions for vertex 22: 19
+instructions for vertex 23: 19
+instructions for vertex 24: 19
+instructions for vertex 25: 19
+instructions for vertex 26: 19
+instructions for vertex 27: 19
+instructions for vertex 28: 19
+instructions for vertex 29: 19
+instructions for vertex 30: 19
+instructions for vertex 31: 19
+instructions for vertex 32: 19
+instructions for vertex 33: 19
+instructions for vertex 34: 19
+instructions for vertex 35: 19
+instructions for vertex 36: 19
+instructions for vertex 37: 19
+instructions for vertex 38: 19
+instructions for vertex 39: 19
+instructions for vertex 40: 19
+instructions for vertex 41: 19
+instructions for vertex 42: 15
+instructions for vertex 43: 15
+instructions for vertex 44: 15
+instructions for vertex 45: 15
+instructions for vertex 46: 15
+instructions for vertex 47: 15
+instructions for vertex 48: 15
+instructions for vertex 49: 15
+instructions for vertex 50: 15
+instructions for vertex 51: 15
+instructions for vertex 52: 15
+instructions for vertex 53: 13
+instructions for vertex 54: 15
+instructions for vertex 55: 15
+instructions for vertex 56: 15
+instructions for vertex 57: 15
+instructions for vertex 58: 15
+instructions for vertex 59: 15
+instructions for edge (0, 2): 5
+instructions for edge (0, 3): 5
+instructions for edge (0, 5): 5
+instructions for edge (0, 9): 5
+instructions for edge (0, 14): 5
+instructions for edge (0, 16): 5
+instructions for edge (0, 19): 5
+instructions for edge (0, 20): 5
+instructions for edge (0, 22): 5
+instructions for edge (0, 23): 5
+instructions for edge (0, 24): 5
+instructions for edge (0, 25): 5
+instructions for edge (0, 26): 5
+instructions for edge (0, 29): 5
+instructions for edge (0, 33): 5
+instructions for edge (0, 35): 5
+instructions for edge (0, 36): 5
+instructions for edge (0, 39): 5
+instructions for edge (0, 40): 5
+instructions for edge (0, 41): 5
+instructions for edge (0, 42): 5
+instructions for edge (0, 43): 5
+instructions for edge (0, 44): 5
+instructions for edge (0, 48): 5
+instructions for edge (0, 51): 5
+instructions for edge (0, 54): 5
+instructions for edge (0, 55): 5
+instructions for edge (0, 57): 5
+instructions for edge (1, 8): 5
+instructions for edge (1, 30): 5
+instructions for edge (1, 49): 5
+instructions for edge (1, 56): 5
+instructions for edge (3, 1): 5
+instructions for edge (3, 12): 5
+instructions for edge (3, 18): 5
+instructions for edge (3, 32): 5
+instructions for edge (4, 27): 5
+instructions for edge (4, 28): 5
+instructions for edge (4, 31): 5
+instructions for edge (4, 34): 5
+instructions for edge (4, 45): 5
+instructions for edge (4, 46): 5
+instructions for edge (5, 47): 5
+instructions for edge (6, 4): 5
+instructions for edge (6, 10): 5
+instructions for edge (6, 21): 5
+instructions for edge (6, 38): 5
+instructions for edge (6, 50): 5
+instructions for edge (6, 52): 5
+instructions for edge (6, 58): 5
+instructions for edge (6, 59): 5
+instructions for edge (7, 6): 5
+instructions for edge (7, 11): 5
+instructions for edge (7, 37): 5
+instructions for edge (15, 0): 2
+instructions for edge (15, 13): 2
+instructions for edge (15, 53): 2
+instructions for edge (17, 7): 1
+instructions for edge (21, 0): 3
+instructions for edge (42, 7): 4
+total instructions on vertices: 3600
+total instructions on edges: 3600
+total instructions: 7200
