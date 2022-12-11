@@ -1,20 +1,26 @@
 sorted vertex: 8
-cycle!
-instructions for vertex 0: 14
-instructions for vertex 1: 12
-instructions for vertex 2: 8
-instructions for vertex 3: 4
-instructions for vertex 4: 4
-instructions for vertex 5: 4
-instructions for vertex 6: 4
-instructions for vertex 7: 3
+sorted vertex: 1
+sorted vertex: 6
+sorted vertex: 2
+sorted vertex: 3
+sorted vertex: 5
+sorted vertex: 4
+sorted vertex: 7
+instructions for vertex 0: 49
+instructions for vertex 1: 45
+instructions for vertex 2: 35
+instructions for vertex 3: 28
+instructions for vertex 4: 27
+instructions for vertex 5: 24
+instructions for vertex 6: 28
+instructions for vertex 7: 20
 instructions for edge (0, 1): 2
 instructions for edge (0, 5): 2
-instructions for edge (1, 2): 2
-instructions for edge (2, 3): 2
-instructions for edge (2, 4): 2
-instructions for edge (3, 0): 2
-instructions for edge (3, 6): 2
+instructions for edge (1, 2): 4
+instructions for edge (2, 3): 5
+instructions for edge (2, 4): 5
+instructions for edge (3, 6): 7
+instructions for edge (7, 0): 1
 total instructions on vertices: 64
 total instructions on edges: 64
 total instructions: 128

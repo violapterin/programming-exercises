@@ -20,9 +20,9 @@ rm -f "${TITLE}.o" "${DEBUG}.o"
 gcc -o "${TITLE}.o" "${TITLE}".c
 gcc -g -o "${DEBUG}.o" "${TITLE}".c
 
+run 0
+run 4
+run 2
 run 1
-run 3
 run 5
-#run 0
-#run 2
-#run 4
+run 3
