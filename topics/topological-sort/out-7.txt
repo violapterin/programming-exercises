@@ -205,6 +205,6 @@ instructions for edge (83, 77): 3
 instructions for edge (85, 17): 2
 instructions for edge (85, 83): 2
 instructions for edge (88, 61): 4
-total instructions on vertices: 10000
-total instructions on edges: 10000
-total instructions: 20000
+total instructions on vertices: 11175
+total instructions on edges: 669
+total instructions: 11844

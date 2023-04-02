@@ -220,13 +220,11 @@ void sort_topological(
    int total_edge = 0;
    int total = 0;
    for (int row = 0; row <= maximum - 1; row++) {
-      for (int column = 0; column <= maximum - 1; column++) {
-         total_vertex += 1;
-      }
+      total_vertex += complexity_vertex[row];
    }
    for (int row = 0; row <= maximum - 1; row++) {
       for (int column = 0; column <= maximum - 1; column++) {
-         total_edge += 1;
+         total_edge += complexity_edge[row][column];
       }
    }
    total = total_edge + total_vertex;

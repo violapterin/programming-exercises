@@ -1,3 +1,3 @@
-# LeetCode exercises
+# Programming exercises
 
-LeetCode exercises, mostly medium and hard, and in C++.
+Miscellaneous programming exercises, LeetCode among other stuff.
