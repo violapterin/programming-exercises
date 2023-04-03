@@ -7,32 +7,15 @@ import numpy.random as RANDOM
 from time import time
 
 
-'''
-def test():
-   left = -8
-   right = 8
-   for _ in range(20000):
-      poly = RANDOM.default_rng().uniform(left, right, 12)
-      square = PLN.polypow(poly, 2)
-      #print("square", square)
-      antiderivative = PLN.polyint(square)
-      #print("antiderivative", antiderivative)
-      result = 0
-      result += PLN.polyval(right, antiderivative)
-      result -= PLN.polyval(left, antiderivative)
-      assert(result >= 0)
-      result = NP.log(result)
-'''
-
 def main():
-   number_experiment = 128
-   left = -4
-   right = 4
-   degree_correct_low = 12
-   degree_correct_high = 18
-   choice_degree_model_low = [6, 9]
-   choice_degree_model_high = [32, 24]
-   choice_number_sample = [64, 96]
+   number_experiment = 16
+   left = -2
+   right = 2
+   degree_correct_low = 24
+   degree_correct_high = 36
+   choice_degree_model_low = [12, 18]
+   choice_degree_model_high = [48, 42]
+   choice_number_sample = [60, 120]
 
    time_start = time()
    for number_sample in choice_number_sample:
@@ -65,7 +48,8 @@ def simulate(**setup):
    degree_model_high = setup["degree_model_high"]
    degree_correct_low = setup["degree_correct_low"]
    degree_correct_high = setup["degree_correct_high"]
-   threshold = 1e3
+   threshold_big = 1e3
+   threshold_small = 1e-3
 
    range_degree_correct = range(degree_correct_low, degree_correct_high + 1)
    akaike = []
@@ -75,16 +59,23 @@ def simulate(**setup):
       print("      ", "calculating for true degree", degree_correct)
       total = NP.array([0.0, 0.0])
       for _ in range(number_experiment):
-         hold = learn(
-            left = left,
-            right = right,
-            number_sample = number_sample,
-            degree_model_low = degree_model_low,
-            degree_model_high = degree_model_high,
-            degree_correct = degree_correct,
-         )
-         if (NP.abs(total[0]) > threshold): continue
-         if (NP.abs(total[1]) > threshold): continue
+         while (True):
+            hold = learn(
+               left = left,
+               right = right,
+               number_sample = number_sample,
+               degree_model_low = degree_model_low,
+               degree_model_high = degree_model_high,
+               degree_correct = degree_correct,
+            )
+            flag = True
+            if (hold[0] < 0): flag = False
+            if (hold[1] < 0): flag = False
+            if (hold[0] > threshold_big): flag = False
+            if (hold[1] > threshold_big): flag = False
+            if (NP.abs(hold[1] - hold[0]) < threshold_small): flag = False
+            if (flag): break
+         print(hold)
          total += hold
       total /= number_experiment
       akaike.append(total[0])
@@ -112,32 +103,24 @@ def learn(**setup):
    degree_model_low = setup["degree_model_low"]
    degree_model_high = setup["degree_model_high"]
    degree_correct = setup["degree_correct"]
-   threshold = 1e3
 
    root = RANDOM.default_rng().uniform(left, right, degree_correct)
    sample = RANDOM.default_rng().uniform(left, right, number_sample)
    correct = PLN.polyfromroots(root)
+   evaluation = PLN.polyval(sample, correct)
+   noise = RANDOM.default_rng().standard_normal(number_sample)
+   observation = evaluation + noise
    range_degree_model = range(degree_model_low, degree_model_high)
    record_loss = []
    record_akaike = []
    record_bayes = []
 
    for degree in range_degree_model:
-      evaluation = PLN.polyval(sample, correct)
-      noise = RANDOM.default_rng().standard_normal(number_sample)
-      observation = evaluation + noise
       estimator = PLN.polyfit(sample, observation, degree)
       loss = find_loss(left, right, correct, estimator)
-      likelihood = find_likelihood(correct, estimator)
+      likelihood = find_likelihood(sample, correct, estimator)
       akaike = - 2 * likelihood + 2 * degree
       bayes = - 2 * likelihood + NP.log(number_sample) * degree
-
-      if (loss > threshold): loss = threshold
-      if (loss < - threshold): loss = - threshold
-      if (akaike > threshold): akaike = threshold
-      if (akaike < - threshold): akaike = - threshold
-      if (bayes > threshold): bayes = threshold
-      if (bayes < - threshold): bayes = - threshold
       record_loss.append(loss)
       record_akaike.append(akaike)
       record_bayes.append(bayes)
@@ -146,8 +129,10 @@ def learn(**setup):
    loss_bayes = record_loss[NP.argmin(record_bayes)]
    return NP.array([loss_akaike, loss_bayes])
 
-def find_likelihood(polynomial_one, polynomial_two):
-   difference = PLN.polysub(polynomial_one, polynomial_two)
+def find_likelihood(sample, polynomial_one, polynomial_two):
+   value_one = PLN.polyval(sample, polynomial_one)
+   value_two = PLN.polyval(sample, polynomial_two)
+   difference = value_one - value_two
    result = 0
    result += - (1/2) * NP.log(2 * NP.pi) * difference.size
    result += NP.sum(- (difference * difference) / 2)
