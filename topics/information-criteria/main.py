@@ -4,37 +4,38 @@ import numpy as NP
 import matplotlib.pyplot as PLOT
 import numpy.polynomial.polynomial as PLN
 import numpy.random as RANDOM
-from time import time
+from time import time as TIME
+from datetime import datetime as DATETIME
 
 
 def main():
-   number_experiment = 16
-   left = -2
-   right = 2
+   left = -1
+   right = 1
+   number_experiment = 8
    degree_correct_low = 24
-   degree_correct_high = 36
-   choice_degree_model_low = [12, 18]
-   choice_degree_model_high = [48, 42]
-   choice_number_sample = [60, 120]
+   degree_correct_high = 32
+   choice_degree_model = [[12, 40], [8, 48]]
+   choice_number_sample = [240, 320]
 
-   time_start = time()
+   time_start = TIME()
    for number_sample in choice_number_sample:
       print("number of sample", number_sample)
-      for degree_model_low in choice_degree_model_low:
-         print("  ", "lowest degree of estimator", degree_model_low)
-         for degree_model_high in choice_degree_model_high:
-            print("    ", "highest degree of estimator", degree_model_high)
-            simulate(
-               left = left,
-               right = right,
-               number_experiment = number_experiment,
-               number_sample = number_sample,
-               degree_model_low = degree_model_low,
-               degree_model_high = degree_model_high,
-               degree_correct_low = degree_correct_low,
-               degree_correct_high = degree_correct_high,
-            )
-   time_end = time()
+      for pair_degree in choice_degree_model:
+         #print("pair", pair_degree)
+         print("  ", "range of estimated degree", pair_degree)
+         degree_model_low = pair_degree[0]
+         degree_model_high = pair_degree[1]
+         simulate(
+            left = left,
+            right = right,
+            number_experiment = number_experiment,
+            number_sample = number_sample,
+            degree_model_low = degree_model_low,
+            degree_model_high = degree_model_high,
+            degree_correct_low = degree_correct_low,
+            degree_correct_high = degree_correct_high,
+         )
+   time_end = TIME()
    time_total = (time_end - time_start) / 60
    print("time taken:", f"{time_total:.3f}", "minutes")
 
@@ -56,7 +57,11 @@ def simulate(**setup):
    bayes = []
 
    for degree_correct in range_degree_correct:
-      print("      ", "calculating for true degree", degree_correct)
+      print(
+         "    ",
+         '(', DATETIME.now().strftime('%H:%M'), ')',
+         "calculating for true degree", degree_correct,
+      )
       total = NP.array([0.0, 0.0])
       for _ in range(number_experiment):
          while (True):
@@ -75,7 +80,7 @@ def simulate(**setup):
             if (hold[1] > threshold_big): flag = False
             if (NP.abs(hold[1] - hold[0]) < threshold_small): flag = False
             if (flag): break
-         print(hold)
+         #print(hold)
          total += hold
       total /= number_experiment
       akaike.append(total[0])
