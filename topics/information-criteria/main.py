@@ -11,11 +11,18 @@ from datetime import datetime as DATETIME
 def main():
    left = -1
    right = 1
-   number_experiment = 8
+   number_experiment = 384
    degree_correct_low = 24
    degree_correct_high = 32
    choice_degree_model = [[12, 40], [8, 48]]
    choice_number_sample = [240, 320]
+   '''
+   number_experiment = 48
+   degree_correct_low = 24
+   degree_correct_high = 32
+   choice_degree_model = [[12, 40], [8, 48]]
+   choice_number_sample = [240, 320]
+   '''
 
    time_start = TIME()
    for number_sample in choice_number_sample:
@@ -60,19 +67,22 @@ def simulate(**setup):
       print(
          "    ",
          '(', DATETIME.now().strftime('%H:%M'), ')',
-         "calculating for true degree", degree_correct,
+         "true degree", degree_correct,
       )
       total = NP.array([0.0, 0.0])
       for _ in range(number_experiment):
          while (True):
-            hold = learn(
-               left = left,
-               right = right,
-               number_sample = number_sample,
-               degree_model_low = degree_model_low,
-               degree_model_high = degree_model_high,
-               degree_correct = degree_correct,
-            )
+            try:
+               hold = learn(
+                  left = left,
+                  right = right,
+                  number_sample = number_sample,
+                  degree_model_low = degree_model_low,
+                  degree_model_high = degree_model_high,
+                  degree_correct = degree_correct,
+               )
+            except NP.linalg.LinAlgError:
+               continue
             flag = True
             if (hold[0] < 0): flag = False
             if (hold[1] < 0): flag = False
@@ -80,7 +90,6 @@ def simulate(**setup):
             if (hold[1] > threshold_big): flag = False
             if (NP.abs(hold[1] - hold[0]) < threshold_small): flag = False
             if (flag): break
-         #print(hold)
          total += hold
       total /= number_experiment
       akaike.append(total[0])
@@ -92,12 +101,14 @@ def simulate(**setup):
    PLOT.ylabel("squared loss")
    PLOT.title("Information Criteria")
    title = (
-      "plot"
+      "current/plot"
+      + '-' + "times" + '-' + str(number_experiment).zfill(2)
       + '-' + "sample" + '-' + str(number_sample).zfill(2)
       + '-' + "degree" + '-' + str(degree_model_low).zfill(2)
-      + '-' + str(degree_model_high)
+      + '-' + str(degree_model_high).zfill(2)
       + '.' + "png"
    )
+   PLOT.legend()
    PLOT.savefig(title, dpi=300)
    PLOT.clf()
 
