@@ -9,14 +9,29 @@ class Graph:
       self.size = size
       self.graph = [[] for _ in range(self.size)]
       self.time = 0
-      self.count_biconnected = 0
       self.set_articulation = set()
       self.list_bridge = []
       self.list_biconnected = []
-  
-   def add_edge(self, u, v):
-      self.graph[v].append(u) 
-      self.graph[u].append(v)
+
+   def find_biconnected(self):
+      depth = [-1] * (self.size)
+      low = [-1] * (self.size)
+      parent = [-1] * (self.size)
+      stack = []
+      for origin in range(self.size):
+         if depth[origin] == -1:
+            self.explore(origin, parent, low, depth, stack)
+         if stack:
+            component = set()
+            while stack:
+               edge = stack.pop()
+               component.add(edge[0])
+               component.add(edge[1])
+            if (len(component) == 2):
+               self.list_bridge.append(component)
+            else:
+               self.list_biconnected.append(component)
+      self.sort()
  
    def explore(self, u, parent, low, depth, stack):
       number_child = 0
@@ -34,43 +49,21 @@ class Graph:
                (parent[u] == -1 and number_child > 1)
                or (parent[u] != -1 and low[v] >= depth[u])
             ):
-               self.count_biconnected += 1
                component = set()
                edge = -1
                while edge != (u, v):
                   edge = stack.pop()
                   component.add(edge[0])
                   component.add(edge[1])
+               self.list_biconnected.append(component)
                if (len(component) == 2):
                   self.list_bridge.append(component)
-               else:
-                  self.list_biconnected.append(component)
                self.set_articulation.add(u)
          elif (v != parent[u] and low[u] > depth[v]):
             low[u] = min(low[u], depth[v])
             stack.append((u, v))
 
-   def find_biconnected(self):
-      depth = [-1] * (self.size)
-      low = [-1] * (self.size)
-      parent = [-1] * (self.size)
-      stack = []
-      for origin in range(self.size):
-         if depth[origin] == -1:
-            self.explore(origin, parent, low, depth, stack)
-         if stack:
-            self.count_biconnected += 1
-            component = set()
-            while stack:
-               edge = stack.pop()
-               component.add(edge[0])
-               component.add(edge[1])
-            if (len(component) == 2):
-               self.list_bridge.append(component)
-            else:
-               self.list_biconnected.append(component)
-
-   def output(self):
+   def sort(self):
       self.set_articulation = sorted(self.set_articulation)
       list_bridge_sorted = []
       for bridge in self.list_bridge:
@@ -83,6 +76,7 @@ class Graph:
       list_biconnected_sorted = sorted(list_biconnected_sorted, key=lambda x: x[0])
       self.list_biconnected = list_biconnected_sorted
 
+   def output(self):
       print("articulation:")
       for vertex in sorted(self.set_articulation):
          print(vertex, end=' ')
@@ -97,6 +91,10 @@ class Graph:
          for vertex in sorted(biconnected):
             print(vertex, end=' ')
          print()
+  
+   def add_edge(self, u, v):
+      self.graph[v].append(u) 
+      self.graph[u].append(v)
 
 graph = Graph(64)
 document = open(sys.argv[1], "r")

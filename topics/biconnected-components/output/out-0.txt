@@ -1,0 +1,10 @@
+articulation:
+3 4 
+bridge:
+3 4 
+3 7 
+biconnected:
+1 2 3 
+3 4 
+3 7 
+4 5 6 
