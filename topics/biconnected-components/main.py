@@ -10,7 +10,7 @@ class Graph:
       self.graph = [[] for _ in range(self.size)]
       self.time = 0
       self.count_biconnected = 0
-      self.list_articulation = []
+      self.set_articulation = set()
       self.list_bridge = []
       self.list_biconnected = []
   
@@ -47,7 +47,7 @@ class Graph:
                   self.list_bridge.append(component)
                else:
                   self.list_biconnected.append(component)
-               self.list_articulation.append(u)
+               self.set_articulation.add(u)
          elif (v != parent[u] and low[u] > depth[v]):
             low[u] = min(low[u], depth[v])
             stack.append((u, v))
@@ -76,7 +76,7 @@ class Graph:
 
    def output(self):
       print("articulation:")
-      for vertex in sorted(self.list_articulation):
+      for vertex in sorted(self.set_articulation):
          print(vertex, end=' ')
       print()
       print("bridge:")
