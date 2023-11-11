@@ -39,10 +39,8 @@ class Graph:
                edge = -1
                while edge != (u, v):
                   edge = stack.pop()
-                  print(edge, end=" ")
                   component.add(edge[0])
                   component.add(edge[1])
-               print()
                if (len(component) == 2):
                   self.list_bridge.append(component)
                else:
@@ -65,16 +63,26 @@ class Graph:
             component = set()
             while stack:
                edge = stack.pop()
-               print(edge, end=" ")
                component.add(edge[0])
                component.add(edge[1])
-            print()
             if (len(component) == 2):
                self.list_bridge.append(component)
             else:
                self.list_biconnected.append(component)
 
    def output(self):
+      self.set_articulation = sorted(self.set_articulation)
+      list_bridge_sorted = []
+      for bridge in self.list_bridge:
+         list_bridge_sorted.append(sorted(bridge))
+      list_bridge_sorted = sorted(list_bridge_sorted, key=lambda x: x[0])
+      self.list_bridge = list_bridge_sorted
+      list_biconnected_sorted = []
+      for biconnected in self.list_biconnected:
+         list_biconnected_sorted.append(sorted(biconnected))
+      list_biconnected_sorted = sorted(list_biconnected_sorted, key=lambda x: x[0])
+      self.list_biconnected = list_biconnected_sorted
+
       print("articulation:")
       for vertex in sorted(self.set_articulation):
          print(vertex, end=' ')
