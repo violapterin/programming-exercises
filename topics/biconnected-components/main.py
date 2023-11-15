@@ -27,10 +27,9 @@ class Graph:
                edge = stack.pop()
                component.add(edge[0])
                component.add(edge[1])
+            self.list_biconnected.append(component)
             if (len(component) == 2):
                self.list_bridge.append(component)
-            else:
-               self.list_biconnected.append(component)
       self.sort()
  
    def explore(self, u, parent, low, depth, stack):
