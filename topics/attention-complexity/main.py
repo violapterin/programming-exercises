@@ -85,20 +85,55 @@ class Network:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-class Constant:
-   def __init__(self, situation):
-      match situation:
+def display_many_constant(self, **situation):
+      dot_depth = 1
+      width = 1
+      dot_sample = 1
+      experiment = 1
+      match situation["depth"]:
          case "big":
-            self.depth = 12
-            self.width = 20
+            dot_depth = 24
          case "medium":
-            self.depth = 8
-            self.width = 16
+            dot_depth = 16
          case "small":
-            self.depth = 4
-      self.width = 30
-      self.number_sample
-      self.number_experiment
+            dot_depth = 8
+      match situation["width"]:
+         case "big":
+            width = 36
+         case "medium":
+            width = 24
+         case "small":
+            width = 12
+      match situation["sample"]:
+         case "big":
+            dot_sample = 120
+         case "medium":
+            dot_sample = 80
+         case "small":
+            dot_sample = 40
+      match situation["experiment"]:
+         case "big":
+            experiment = 24
+         case "medium":
+            experiment = 16
+         case "small":
+            experiment = 8
+      self.table =  [[None]*self.dot_sample for _ in range(self.dot_depth)]
+      for index_depth in range(self.dot_depth):
+         for index_sample in range(self.dot_sample):
+            self.table[index_depth][index_sample] = Constant(
+               depth = 8 + 2 * index_depth,
+               width = width,
+               sample = 40 + 5 * index_sample,
+               experiment = experiment,
+            )
+
+class Constant:
+   def __init__(self, depth, width, sample, experiment):
+      self.depth = depth
+      self.width = width
+      self.sample = sample
+      self.experiment = experiment
       self.bound_transition = 2
       self.bound_entry = 5
       self.range = 12
@@ -111,15 +146,24 @@ class Constant:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 def main():
+   many_constant = display_many_constant(
+      depth = "small",
+      width = "small",
+      sample = "small",
+      experiment = "small",
+   )
    cc = Constant("small-six")
    experiment_attention_loss = []
    experiment_vanilla_loss = []
-   for depth in cc.many_depth:
-      for _ in range(cc.number_experiment):
+   collection = []
+   for cc in display_many_constant:
+      loss_attention = 0
+      loss_vanilla = 0
+      for _ in range(cc.experiment):
          # attention: training
          many_input = []
          many_observation = []
-         for _ in range(cc.number_sample):
+         for _ in range(cc.sample):
             if (Uniform(0, 2) <= 1):
                many_observation.append(1)
                many_input.append(generate_history(cc))
@@ -129,28 +173,33 @@ def main():
          many_loss = []
          candidate_focus = cc.candidate_period + [0] + [- x for x in cc.candidate_period]
          for focus_guess in candidate_focus:
-            many_attentive_guess = add_attention(focus_guess, many_input)
-            loss = fit_data_find_loss(cc, focus_guess, many_attentive_guess, many_observation)
+            many_attentive = add_attention(focus_guess, many_input)
+            loss = fit_data_find_loss(cc, focus_guess, many_attentive, many_observation)
             many_loss.append(loss)
          focus_chosen = candidate_focus[many_loss.index(min(many_loss))]
          # attention: proper experiments
-         many_attentive_chosen = add_attention(focus_chosen, many_input)
-         actual_loss = fit_data_find_loss(cc, many_attentive_chosen, many_observation)
-         experiment_attention_loss += actual_loss / cc.number_experiment
+         many_attentive = add_attention(focus_chosen, many_input)
+         loss_attention += (
+            fit_data_find_loss(cc, many_attentive, many_observation)
+            / cc.experiment
+         )
          # vanilla: experiments
          many_input = []
          many_observation = []
-         for _ in range(cc.number_sample):
+         for _ in range(cc.sample):
             if (Uniform(0, 2) <= 1):
                many_observation.append(1)
                many_input.append(generate_history(cc))
             else:
                many_observation.append(0)
                many_input.append(generate_random(cc))
-         actual_loss = fit_data_find_loss(cc, many_input, many_observation)
-         experiment_vanilla_loss += actual_loss / cc.number_experiment
+         loss_vanilla += (
+            fit_data_find_loss(cc, many_input, many_observation)
+            / cc.experiment
+         )
+      collection.append((cc.depth, cc.sample, loss_attention, loss_vanilla))
 
-   range_depth = cc.range_depth
+   histogram(collection, 0)
    Plot.plot(range_depth, experiment_vanilla_loss, label = "vanilla")
    Plot.plot(range_depth, experiment_attention_loss, label = "attention")
    Plot.xlabel("depth")
@@ -158,14 +207,17 @@ def main():
    Plot.title("Attention Mechanism")
    title = (
       "current/plot"
-      + '-' + "times" + '-' + str(cc.number_experiment).zfill(2)
-      + '-' + "sample" + '-' + str(cc.number_sample).zfill(2)
-      + '-' + str(degree_model_high).zfill(2)
+      + '-' + "experiment" + '-' + str(cc.experiment).zfill(2)
+      + '-' + "sample" + '-' + str(cc.sample).zfill(2)
       + '.' + "png"
    )
    Plot.legend()
    Plot.savefig(title, dpi=300)
    Plot.clf()
+
+def histogram(collection, argument):
+   for item in collection:
+      # XXX
 
 def fit_data_find_loss(cc, many_input, many_observation):
    network = Network(cc)
