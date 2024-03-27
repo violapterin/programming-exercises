@@ -7,12 +7,12 @@ import time.time as Time
 import datetime.datetime as Datetime
 
 class Network:
-   def __init__(self, cc):
-      self.depth = cc.depth
-      self.width = cc.width
-      self.epoch = cc.epoch
+   def __init__(self, dot):
+      self.depth = dot.depth
+      self.width = dot.width
+      self.epoch = dot.epoch
       self.input = NP.zeros((self.width, 1))
-      self.initialize_weight(cc.weight_top)
+      self.initialize_weight(dot.weight_top)
       self.initialize_propagation()
 
    def fit_data(self, many_input, many_observation):
@@ -85,39 +85,18 @@ class Network:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def display_many_constant(self, **situation):
+def display_array_constant(self, **method):
       dot_depth = 1
       width = 1
       dot_sample = 1
       experiment = 1
-      match situation["depth"]:
+      match method["depth"]:
          case "big":
             dot_depth = 24
          case "medium":
             dot_depth = 16
          case "small":
             dot_depth = 8
-      match situation["width"]:
-         case "big":
-            width = 36
-         case "medium":
-            width = 24
-         case "small":
-            width = 12
-      match situation["sample"]:
-         case "big":
-            dot_sample = 120
-         case "medium":
-            dot_sample = 80
-         case "small":
-            dot_sample = 40
-      match situation["experiment"]:
-         case "big":
-            experiment = 24
-         case "medium":
-            experiment = 16
-         case "small":
-            experiment = 8
       self.table =  [[None]*self.dot_sample for _ in range(self.dot_depth)]
       for index_depth in range(self.dot_depth):
          for index_sample in range(self.dot_sample):
@@ -128,12 +107,13 @@ def display_many_constant(self, **situation):
                experiment = experiment,
             )
 
+prefix_constant_label
+
 class Constant:
-   def __init__(self, depth, width, sample, experiment):
+   def __init__(self, depth, width, sample):
       self.depth = depth
       self.width = width
       self.sample = sample
-      self.experiment = experiment
       self.bound_transition = 2
       self.bound_entry = 5
       self.range = 12
@@ -146,99 +126,132 @@ class Constant:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 def main():
-   many_constant = display_many_constant(
-      depth = "small",
-      width = "small",
-      sample = "small",
-      experiment = "small",
-   )
-   cc = Constant("small-six")
-   experiment_attention_loss = []
-   experiment_vanilla_loss = []
-   collection = []
-   for cc in display_many_constant:
-      loss_attention = 0
-      loss_vanilla = 0
-      for _ in range(cc.experiment):
-         # attention: training
-         many_input = []
-         many_observation = []
-         for _ in range(cc.sample):
-            if (Uniform(0, 2) <= 1):
-               many_observation.append(1)
-               many_input.append(generate_history(cc))
-            else:
-               many_observation.append(0)
-               many_input.append(generate_random(cc))
-         many_loss = []
-         candidate_focus = cc.candidate_period + [0] + [- x for x in cc.candidate_period]
-         for focus_guess in candidate_focus:
-            many_attentive = add_attention(focus_guess, many_input)
-            loss = fit_data_find_loss(cc, focus_guess, many_attentive, many_observation)
-            many_loss.append(loss)
-         focus_chosen = candidate_focus[many_loss.index(min(many_loss))]
-         # attention: proper experiments
-         many_attentive = add_attention(focus_chosen, many_input)
-         loss_attention += (
-            fit_data_find_loss(cc, many_attentive, many_observation)
-            / cc.experiment
-         )
-         # vanilla: experiments
-         many_input = []
-         many_observation = []
-         for _ in range(cc.sample):
-            if (Uniform(0, 2) <= 1):
-               many_observation.append(1)
-               many_input.append(generate_history(cc))
-            else:
-               many_observation.append(0)
-               many_input.append(generate_random(cc))
-         loss_vanilla += (
-            fit_data_find_loss(cc, many_input, many_observation)
-            / cc.experiment
-         )
-      collection.append((cc.depth, cc.sample, loss_attention, loss_vanilla))
+   situation = "small"
+   match situation:
+      case "small":
+         point = 4
+         array_factor = [1, 3, 5, 7]
+         array_depth = [6, 9, 12, 15]
+      case "medium":
+         point = 6
+         array_factor = [1, 3, 5, 7, 9, 11]
+         array_depth = [6, 9, 12, 15, 18, 21]
+      case _:
+         pass
+   assert(len(array_factor) == point)
+   assert(len(array_depth) == point)
 
-   histogram(collection, 0)
-   Plot.plot(range_depth, experiment_vanilla_loss, label = "vanilla")
-   Plot.plot(range_depth, experiment_attention_loss, label = "attention")
+   setting = []
+   for method in ["vanilla", "attention"]:
+      for index_depth in range(point):
+         array_constant = []
+         depth = array_depth[index_depth]
+         width = 8
+         label = (
+            "method-" + method
+            + "-depth-" + str(depth)
+         )
+         array_constant.append(label)
+         for index_point in range(point):
+            sample = array_factor[index_point] * depth ** 2
+            constant = Constant(
+               depth = depth,
+               width = width,
+               sample = sample,
+            )
+            array_constant.append(constant)
+
+   # diimension == error^2 * sample == edge^2
+   result = []
+   for array_constant in setting:
+      label = array_constant[0]
+      curve = []
+      curve.append(label)
+      if label.startwith("attention"):
+         for dot in array_constant[1:]:
+            loss = 0
+            for _ in range(dot.experiment):
+               # attention: training
+               many_input = []
+               many_observation = []
+               for _ in range(dot.sample):
+                  if (Uniform(0, 2) <= 1):
+                     many_observation.append(1)
+                     many_input.append(generate_history(dot))
+                  else:
+                     many_observation.append(0)
+                     many_input.append(generate_random(dot))
+               many_trained = []
+               candidate_focus = (
+                  dot.candidate_period + [0]
+                  + [- x for x in dot.candidate_period]
+               )
+               for focus_guess in candidate_focus:
+                  many_attentive = add_attention(focus_guess, many_input)
+                  trained = fit_data_find_loss(dot, many_attentive, many_observation)
+                  many_trained.append(trained)
+               focus_chosen = candidate_focus[many_trained.index(min(many_trained))]
+               # attention: proper experiments
+               many_attentive = add_attention(focus_chosen, many_input)
+               loss += (
+                  fit_data_find_loss(dot, many_attentive, many_observation)
+                  / dot.experiment
+               )
+            curve.append(loss)
+      elif label.startwith("vanilla"):
+         for dot in array_constant[1:]:
+            loss = 0
+            for _ in range(dot.experiment):
+               # vanilla: experiments
+               many_input = []
+               many_observation = []
+               for _ in range(dot.sample):
+                  if (Uniform(0, 2) <= 1):
+                     many_observation.append(1)
+                     many_input.append(generate_history(dot))
+                  else:
+                     many_observation.append(0)
+                     many_input.append(generate_random(dot))
+               loss += (
+                  fit_data_find_loss(dot, many_input, many_observation)
+                  / dot.experiment
+               )
+            curve.append(loss)
+      else:
+         pass
+
+   for curve in result:
+      label = curve[0]
+      array_loss = curve[1:]
+      Plot.plot(array_depth, array_loss, label = label)
    Plot.xlabel("depth")
    Plot.ylabel("squared loss")
    Plot.title("Attention Mechanism")
-   title = (
-      "current/plot"
-      + '-' + "experiment" + '-' + str(cc.experiment).zfill(2)
-      + '-' + "sample" + '-' + str(cc.sample).zfill(2)
-      + '.' + "png"
-   )
+   title = ("current/plot" + situation + '.' + "png")
    Plot.legend()
-   Plot.savefig(title, dpi=300)
+   Plot.savefig(title, dpi = 300)
    Plot.clf()
 
-def histogram(collection, argument):
-   for item in collection:
-      # XXX
-
-def fit_data_find_loss(cc, many_input, many_observation):
-   network = Network(cc)
+def fit_data_find_loss(dot, many_input, many_observation):
+   network = Network(dot)
    network.fit_data(many_input, many_observation)
    loss = network.give_loss(many_input, many_observation)
    return loss
 
-def generate_history(cc):
-   transition = Uniform(- cc.bound_transition, cc.bound_transition, (1, cc.period)) 
-   history = NP.zeros((cc.period, 1))
-   for _ in cc.width:
+def generate_history(dot):
+   transition = Uniform(- dot.bound_transition, cc.bound_transition, (1, cc.period)) 
+   history = NP.zeros((dot.period, 1))
+   for _ in dot.width:
       latest = 0
-      if (Uniform(0, cc.period) <= 1):
-         latest = Uniform(- cc.bound_entry, cc.bound_entry)
+      if (Uniform(0, dot.period) <= 1):
+         latest = Uniform(- dot.bound_entry, cc.bound_entry)
       else:
-         latest = transition * history[:cc.period, :]
+         latest = transition * history[:dot.period, :]
       history.append(latest)
    return history
 
-def generate_random(cc):
-   history = Uniform(- cc.bound_entry, cc.bound_entry, (cc.width, 1))
+def generate_random(dot):
+   history = Uniform(- dot.bound_entry, cc.bound_entry, (cc.width, 1))
    return history
 
 def add_attention(period, many_input):
