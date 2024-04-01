@@ -2,9 +2,9 @@
 
 import numpy as NP
 import matplotlib.pyplot as Plot
-import numpy.random.Generator.uniform as Uniform
-import time.time as Time
-import datetime.datetime as Datetime
+# import numpy.random.Generator.uniform as Uniform
+# import time.time as Time
+# import datetime.datetime as Datetime
 
 class Network:
    def __init__(self, dot):
@@ -12,6 +12,8 @@ class Network:
       self.width = dot.width
       self.epoch = dot.epoch
       self.input = NP.zeros((self.width, 1))
+      self.output = 0
+      self.initialize_hidden()
       self.initialize_weight(dot.weight_top)
       self.initialize_propagation()
 
@@ -31,8 +33,7 @@ class Network:
          gradient = self.find_gradient()
          for layer in range(self.depth - 1):
             increment[layer] = - (
-               step
-               * 2 * (self.output - observation)
+               step * 2 * (self.output - observation)
                * gradient[layer]
             )
       for layer in range(self.depth - 1):
@@ -58,12 +59,13 @@ class Network:
 
    def permeate(self, input):
       self.input = input
+      self.hidden[0] = self.input
       for layer in range(self.depth - 1):
          hold_hidden = self.weight[layer] * self.hidden[layer]
          self.hidden[layer + 1] = [
-            x if abs(x) <= 1
-            else int(NP.sign(x))
-            for x in hold_hidden
+            node if abs(node) <= 1
+            else int(NP.sign(node))
+            for node in hold_hidden
          ]
 
    def propagate(self):
@@ -74,40 +76,19 @@ class Network:
    def initialize_weight(self, weight_top):
       self.weight = []
       for _ in range(self.depth - 1):
-         self.weight.append(NP.eye(self.width) / self.depth)
+         self.weight.append(NP.eye(self.width))
       self.weight.append(weight_top)
 
    def initialize_propagation(self):
       self.propagation = []
-      for _ in range(self.depth - 1):
+      for _ in range(self.depth):
          self.propagation.append(NP.zeros((self.width, 1)))
       self.propagate()
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-def display_array_constant(self, **method):
-      dot_depth = 1
-      width = 1
-      dot_sample = 1
-      experiment = 1
-      match method["depth"]:
-         case "big":
-            dot_depth = 24
-         case "medium":
-            dot_depth = 16
-         case "small":
-            dot_depth = 8
-      self.table =  [[None]*self.dot_sample for _ in range(self.dot_depth)]
-      for index_depth in range(self.dot_depth):
-         for index_sample in range(self.dot_sample):
-            self.table[index_depth][index_sample] = Constant(
-               depth = 8 + 2 * index_depth,
-               width = width,
-               sample = 40 + 5 * index_sample,
-               experiment = experiment,
-            )
-
-prefix_constant_label
+   def initialize_hidden(self):
+      self.hidden = []
+      for _ in range(self.depth):
+         self.hidden.append(NP.zeros((self.width, 1)))
 
 class Constant:
    def __init__(self, depth, width, sample):
@@ -119,7 +100,7 @@ class Constant:
       self.range = 12
       self.candidate_period = [4, 5, 6]
       self.weight_top = NP.array(NP.ones((1, self.width)) / self.width)
-      self.epoch = 1024
+      self.epoch = 128
       self.step_size = 0.1
       self.step_decay = 0.95
 
@@ -127,33 +108,34 @@ class Constant:
 
 def main():
    situation = "small"
-   match situation:
-      case "small":
-         point = 4
-         array_factor = [1, 3, 5, 7]
-         array_depth = [6, 9, 12, 15]
-      case "medium":
-         point = 6
-         array_factor = [1, 3, 5, 7, 9, 11]
-         array_depth = [6, 9, 12, 15, 18, 21]
-      case _:
-         pass
-   assert(len(array_factor) == point)
-   assert(len(array_depth) == point)
+   array_sample = []
+   array_depth = []
+   width = 1
+   if (situation == "small"):
+      array_sample = [3, 4, 5] * 8
+      array_depth = [6, 9, 12]
+      width = 8
+   elif (situation == "medium"):
+      array_sample = [4, 5, 6, 7] * 12
+      array_depth = [9, 12, 15, 18]
+      width = 12
+   elif (situation == "large"):
+      array_sample = [5, 6, 7, 8, 9, 10] * 16
+      array_depth = [12, 15, 18, 21, 24]
+      width = 16
+   else:
+      pass
 
    setting = []
    for method in ["vanilla", "attention"]:
-      for index_depth in range(point):
+      for depth in array_depth:
          array_constant = []
-         depth = array_depth[index_depth]
-         width = 8
          label = (
-            "method-" + method
+            "-method-" + method
             + "-depth-" + str(depth)
          )
          array_constant.append(label)
-         for index_point in range(point):
-            sample = array_factor[index_point] * depth ** 2
+         for sample in array_sample:
             constant = Constant(
                depth = depth,
                width = width,
@@ -161,7 +143,8 @@ def main():
             )
             array_constant.append(constant)
 
-   # diimension == error^2 * sample == edge^2
+   # diimension ~ error^2 * sample ~ edge^2
+   # error^2 ~ edge^2 / sample
    result = []
    for array_constant in setting:
       label = array_constant[0]
@@ -176,19 +159,19 @@ def main():
                many_observation = []
                for _ in range(dot.sample):
                   if (Uniform(0, 2) <= 1):
-                     many_observation.append(1)
                      many_input.append(generate_history(dot))
+                     many_observation.append(1)
                   else:
-                     many_observation.append(0)
                      many_input.append(generate_random(dot))
+                     many_observation.append(0)
                many_trained = []
                candidate_focus = (
                   dot.candidate_period + [0]
-                  + [- x for x in dot.candidate_period]
+                  + [-period for period in dot.candidate_period]
                )
-               for focus_guess in candidate_focus:
-                  many_attentive = add_attention(focus_guess, many_input)
-                  trained = fit_data_find_loss(dot, many_attentive, many_observation)
+               for focus in candidate_focus:
+                  many_attempt = add_attention(focus, many_input)
+                  trained = fit_data_find_loss(dot, many_attempt, many_observation)
                   many_trained.append(trained)
                focus_chosen = candidate_focus[many_trained.index(min(many_trained))]
                # attention: proper experiments
@@ -197,7 +180,7 @@ def main():
                   fit_data_find_loss(dot, many_attentive, many_observation)
                   / dot.experiment
                )
-            curve.append(loss)
+            curve.append(((dot.depth ** 2) / sample, loss ** 2))
       elif label.startwith("vanilla"):
          for dot in array_constant[1:]:
             loss = 0
@@ -207,28 +190,30 @@ def main():
                many_observation = []
                for _ in range(dot.sample):
                   if (Uniform(0, 2) <= 1):
-                     many_observation.append(1)
                      many_input.append(generate_history(dot))
+                     many_observation.append(1)
                   else:
-                     many_observation.append(0)
                      many_input.append(generate_random(dot))
+                     many_observation.append(0)
                loss += (
                   fit_data_find_loss(dot, many_input, many_observation)
                   / dot.experiment
                )
-            curve.append(loss)
+            curve.append(((dot.depth ** 2) / sample, loss ** 2))
       else:
          pass
 
    for curve in result:
-      label = curve[0]
-      array_loss = curve[1:]
-      Plot.plot(array_depth, array_loss, label = label)
-   Plot.xlabel("depth")
-   Plot.ylabel("squared loss")
+      many_pair = curve[1:]
+      array_first = [pair[0] for pair in many_pair]
+      array_second = [pair[1] for pair in many_pair]
+      Plot.plot(array_first, array_second, label = curve[0])
+      print(curve)
+   Plot.xlabel("edge squared over sample")
+   Plot.ylabel("squared loss squared")
    Plot.title("Attention Mechanism")
    title = ("current/plot" + situation + '.' + "png")
-   Plot.legend()
+   #Plot.legend(loc = "upper left")
    Plot.savefig(title, dpi = 300)
    Plot.clf()
 
@@ -237,22 +222,6 @@ def fit_data_find_loss(dot, many_input, many_observation):
    network.fit_data(many_input, many_observation)
    loss = network.give_loss(many_input, many_observation)
    return loss
-
-def generate_history(dot):
-   transition = Uniform(- dot.bound_transition, cc.bound_transition, (1, cc.period)) 
-   history = NP.zeros((dot.period, 1))
-   for _ in dot.width:
-      latest = 0
-      if (Uniform(0, dot.period) <= 1):
-         latest = Uniform(- dot.bound_entry, cc.bound_entry)
-      else:
-         latest = transition * history[:dot.period, :]
-      history.append(latest)
-   return history
-
-def generate_random(dot):
-   history = Uniform(- dot.bound_entry, cc.bound_entry, (cc.width, 1))
-   return history
 
 def add_attention(period, many_input):
    width = len(many_input[0])
@@ -269,7 +238,25 @@ def add_attention(period, many_input):
          + NP.array([NP.cos(2 * NP.pi * k / period) for k in range(width)])
          for input in many_input
       ]
+   else:
+      pass
    return many_attentive
+
+def generate_history(dot):
+   transition = Uniform(-dot.bound_transition, dot.bound_transition, (1, dot.period)) 
+   history = NP.zeros((dot.period, 1))
+   for _ in dot.width:
+      latest = 0
+      if (Uniform(0, dot.period) <= 1):
+         latest = Uniform(-dot.bound_entry, dot.bound_entry)
+      else:
+         latest = transition * history[:dot.period, :]
+      history.append(latest)
+   return history
+
+def generate_random(dot):
+   history = Uniform(- dot.bound_entry, dot.bound_entry, (dot.width, 1))
+   return history
 
 # # # # # # # # # # # # # # # # # # # # # # # #
 
