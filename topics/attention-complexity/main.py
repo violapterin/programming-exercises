@@ -30,25 +30,26 @@ class Network:
          #print("input", many_input[index])
          observation = many_observation[index]
          self.permeate()
-         gradient = self.find_gradient()
          for layer in range(self.depth - 1):
             increment[layer] = - (
                step * 2 * (self.output - observation)
-               * gradient[layer]
+               * self.find_gradient(layer)
             )
       for layer in range(self.depth - 1):
          self.weight[layer] += increment[layer]
       self.propagate()
 
-   def find_gradient(self):
-      result = 0
-      for layer in range(self.depth - 1):
-         active = [int(abs(node) <= 1) for node in self.hidden[layer]]
-         active = NP.array(active)
-         result += self.propagation[layer] @ active
+   def find_gradient(self, layer):
+      result = [
+         self.propagation[layer].flatten().tolist()
+         if abs(node) <= 1
+         else NP.zeros(self.width).tolist()
+         for node in self.hidden[layer]
+      ]
+      result = NP.transpose(NP.array(result))
       return result
 
-   def find_loss(self, dot, many_input, many_observation):
+   def find_loss(self, many_input, many_observation):
       assert(len(many_input) == len(many_observation))
       size_data = len(many_input)
       loss = 0
@@ -61,26 +62,27 @@ class Network:
    def permeate(self):
       self.hidden[0] = self.input
       for layer in range(self.depth - 1):
-         print("layer:", layer)
-         #print("weight:", self.weight[layer].shape)
-         #print("hidden:", self.hidden[layer].shape)
          hold_hidden = self.weight[layer] @ self.hidden[layer]
+         #print("hold", hold_hidden)
          hold_hidden = [
-            int(node) if abs(node) <= 1
-            else int(NP.sign(node))
+            float(node) if abs(node) <= 1
+            else 0 if (NP.isnan(node) or NP.isinf(node))
+            else float(NP.sign(node))
             for node in hold_hidden
          ]
-         self.hidden[layer + 1] = NP.array(hold_hidden)
+         self.hidden[layer + 1] = NP.array(hold_hidden).reshape(-1, 1)
 
    def propagate(self):
-      self.propagation[self.depth - 1] = self.weight[self.depth - 1]
+      self.propagation[self.depth - 1] = self.weight[self.depth - 1].reshape(1, -1)
       for layer in reversed(range(self.depth - 1)):
          self.propagation[layer] = self.propagation[layer + 1] @ self.weight[layer]
+      #print("propagate:", self.propagation)
 
    def initialize_weight(self, weight_top):
       self.weight = []
       for _ in range(self.depth - 1):
-         self.weight.append(NP.eye(self.width))
+         #self.weight.append(NP.eye(self.width))
+         self.weight.append(draw_uniform_vector(-1, 1, (self.width, self.width)))
       self.weight.append(weight_top)
 
    def initialize_propagation(self):
@@ -104,9 +106,10 @@ class Constant:
       self.bound_entry = 5
       self.range = 12
       self.candidate_period = [4, 5, 6]
-      self.weight_top = NP.array(NP.ones((1, self.width)) / self.width)
+      #self.weight_top = NP.ones((1, self.width)) / self.width
+      self.weight_top = draw_uniform_vector(-1, 1, (1, self.width))
       self.experiment = 36
-      self.epoch = 128
+      self.epoch = 64
       self.size_step = 0.1
       self.decay_step = 0.95
 
@@ -118,17 +121,17 @@ def main():
    array_depth = []
    width = 1
    if (situation == "small"):
-      array_sample = [3, 4, 5] * 6
-      array_depth = [9, 12]
-      width = 24
+      array_sample = [4 * item for item in range(3, 6)]
+      array_depth = [6, 12]
+      width = 4
    elif (situation == "medium"):
-      array_sample = [4, 5, 6, 7] * 12
-      array_depth = [6, 12, 18]
-      width = 36
+      array_sample = [8 * item for item in range(4, 8)]
+      array_depth = [8, 12, 16, 20]
+      width = 6
    elif (situation == "large"):
-      array_sample = [5, 6, 7, 8, 9, 10] * 18
-      array_depth = [4, 8, 12, 16, 20, 24]
-      width = 48
+      array_sample = [12 * item for item in range(5, 10)]
+      array_depth = [9, 12, 15, 18, 21, 24]
+      width = 8
    else:
       pass
    array_period = [2, 3, 6]
@@ -165,6 +168,7 @@ def main():
       if "attention" in label:
          for dot in array_constant[1:]:
             loss = 0
+            print(label)
             for _ in range(dot.experiment):
                # attention: training
                many_input = []
@@ -197,6 +201,7 @@ def main():
       elif "vanilla" in label:
          for dot in array_constant[1:]:
             loss = 0
+            print(label)
             for _ in range(dot.experiment):
                # vanilla: experiments
                many_input = []
@@ -222,8 +227,6 @@ def main():
       many_pair = curve[1:]
       array_first = [pair[0] for pair in many_pair]
       array_second = [pair[1] for pair in many_pair]
-      #print("array_first", array_first)
-      #print("array_second", array_second)
       Plot.plot(array_first, array_second, label = curve[0])
    Plot.xlabel("edge squared over sample")
    Plot.ylabel("squared loss squared")
@@ -236,7 +239,7 @@ def main():
 def fit_data_find_loss(dot, many_input, many_observation):
    network = Network(dot)
    network.fit_data(dot, many_input, many_observation)
-   loss = network.find_loss(dot, many_input, many_observation)
+   loss = network.find_loss(many_input, many_observation)
    return loss
 
 def add_attention(period, many_input):
