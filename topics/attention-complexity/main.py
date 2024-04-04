@@ -2,8 +2,7 @@
 
 import numpy as NP
 import matplotlib.pyplot as Plot
-# import time.time as Time
-# import datetime.datetime as Datetime
+import datetime
 
 class Network:
    def __init__(self, dot):
@@ -27,7 +26,6 @@ class Network:
       increment = [NP.zeros((self.width, self.width))] * (self.depth - 1)
       for index in range(size_data):
          self.input = many_input[index]
-         #print("input", many_input[index])
          observation = many_observation[index]
          self.permeate()
          for layer in range(self.depth - 1):
@@ -47,6 +45,7 @@ class Network:
          for node in self.hidden[layer]
       ]
       result = NP.transpose(NP.array(result))
+      #print("gradient max entry:", NP.max(NP.abs(result)))
       return result
 
    def find_loss(self, many_input, many_observation):
@@ -62,11 +61,12 @@ class Network:
    def permeate(self):
       self.hidden[0] = self.input
       for layer in range(self.depth - 1):
+         #print("weight", self.weight[layer])
+         #print("hidden", self.hidden[layer])
          hold_hidden = self.weight[layer] @ self.hidden[layer]
-         #print("hold", hold_hidden)
          hold_hidden = [
             float(node) if abs(node) <= 1
-            else 0 if (NP.isnan(node) or NP.isinf(node))
+            else 0 if check_abnormal(float(node))
             else float(NP.sign(node))
             for node in hold_hidden
          ]
@@ -76,7 +76,6 @@ class Network:
       self.propagation[self.depth - 1] = self.weight[self.depth - 1].reshape(1, -1)
       for layer in reversed(range(self.depth - 1)):
          self.propagation[layer] = self.propagation[layer + 1] @ self.weight[layer]
-      #print("propagate:", self.propagation)
 
    def initialize_weight(self, weight_top):
       self.weight = []
@@ -102,39 +101,45 @@ class Constant:
       self.width = width
       self.sample = sample
       self.period = period
+      self.candidate_period = [4, 6]
       self.bound_transition = 2
       self.bound_entry = 5
       self.range = 12
-      self.candidate_period = [4, 5, 6]
-      #self.weight_top = NP.ones((1, self.width)) / self.width
-      self.weight_top = draw_uniform_vector(-1, 1, (1, self.width))
-      self.experiment = 36
-      self.epoch = 64
+      self.epoch = 16
       self.size_step = 0.1
       self.decay_step = 0.95
+      self.weight_top = draw_uniform_vector(-1, 1, (1, self.width))
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def main():
-   situation = "small"
+def main(situation):
    array_sample = []
    array_depth = []
    width = 1
-   if (situation == "small"):
-      array_sample = [4 * item for item in range(3, 6)]
-      array_depth = [6, 12]
+   experiment = 1
+   if ("small" in situation):
+      array_sample = [3 * item for item in range(3, 6)]
+      array_depth = [4, 6]
       width = 4
-   elif (situation == "medium"):
-      array_sample = [8 * item for item in range(4, 8)]
-      array_depth = [8, 12, 16, 20]
+   elif ("medium" in situation):
+      array_sample = [4 * item for item in range(4, 8)]
+      array_depth = [6, 9, 12]
       width = 6
-   elif (situation == "large"):
-      array_sample = [12 * item for item in range(5, 10)]
-      array_depth = [9, 12, 15, 18, 21, 24]
+   elif ("large" in situation):
+      array_sample = [6 * item for item in range(5, 10)]
+      array_depth = [8, 10, 12, 14]
       width = 8
    else:
-      pass
-   array_period = [2, 3, 6]
+      return
+   if ("test" in situation):
+      experiment = 6
+   elif ("normal" in situation):
+      experiment = 32
+   elif ("final" in situation):
+      experiment = 60
+   else:
+      return
+   array_period = [4, 6]
 
    setting = []
    for method in ["vanilla", "attention"]:
@@ -142,7 +147,7 @@ def main():
          for period in array_period:
             array_constant = []
             label = (
-               "method-" + method
+               method
                + "-depth-" + str(depth)
                + "-period-" + str(period)
             )
@@ -162,14 +167,18 @@ def main():
    result = []
    for array_constant in setting:
       label = array_constant[0]
-      #print("label:", label)
+      print(
+         "* * * * * *",
+         datetime.datetime.now().strftime("%H"), ":",
+         datetime.datetime.now().strftime("%M"), ":",
+         label
+      )
       curve = []
       curve.append(label)
       if "attention" in label:
          for dot in array_constant[1:]:
             loss = 0
-            print(label)
-            for _ in range(dot.experiment):
+            for _ in range(experiment):
                # attention: training
                many_input = []
                many_observation = []
@@ -180,7 +189,6 @@ def main():
                   else:
                      many_input.append(generate_random(dot))
                      many_observation.append(0)
-               print("many_input", many_input)
                many_trained = []
                candidate_focus = (
                   dot.candidate_period + [0]
@@ -193,16 +201,20 @@ def main():
                focus_chosen = candidate_focus[many_trained.index(min(many_trained))]
                # attention: proper experiments
                many_attentive = add_attention(focus_chosen, many_input)
-               loss += (
+               loss_increment = (
                   fit_data_find_loss(dot, many_attentive, many_observation)
-                  / dot.experiment
+                  / experiment
                )
-            curve.append(((dot.depth ** 2) / sample, loss ** 2))
+               if check_abnormal(loss_increment): pass
+               loss += loss_increment
+            curve.append((
+                  NP.log(((dot.depth ** 2 ) * (dot.width ** 4)) / dot.sample),
+                  NP.log(loss ** 2)
+            ))
       elif "vanilla" in label:
          for dot in array_constant[1:]:
             loss = 0
-            print(label)
-            for _ in range(dot.experiment):
+            for _ in range(experiment):
                # vanilla: experiments
                many_input = []
                many_observation = []
@@ -213,27 +225,52 @@ def main():
                   else:
                      many_input.append(generate_random(dot))
                      many_observation.append(0)
-               #print("many_input", many_input)
-               loss += (
+               loss_increment = (
                   fit_data_find_loss(dot, many_input, many_observation)
-                  / dot.experiment
+                  / experiment
                )
-            curve.append(((dot.depth ** 2) / sample, loss ** 2))
+               if check_abnormal(loss_increment): pass
+               loss += loss_increment
+            curve.append((
+                  NP.log(((dot.depth ** 2 ) * (dot.width ** 4)) / dot.sample),
+                  NP.log(loss ** 2)
+            ))
       else:
          pass
       result.append(curve)
 
+   count_line = 0
+   count_marker = 0
+   many_line = ['-', '--', '-.', ':']
+   many_marker = ['o', 's', 'D', 'P', '^', 'v']
    for curve in result:
       many_pair = curve[1:]
       array_first = [pair[0] for pair in many_pair]
       array_second = [pair[1] for pair in many_pair]
-      Plot.plot(array_first, array_second, label = curve[0])
-   Plot.xlabel("edge squared over sample")
-   Plot.ylabel("squared loss squared")
+      print("array_first", array_first)
+      print("array_second", array_second)
+      Plot.plot(
+         array_first,
+         array_second,
+         label = curve[0],
+         linestyle = many_line[count_line],
+         marker = many_marker[count_marker],
+      )
+      count_line = (count_line + 1) % len(many_line)
+      count_marker = (count_marker + 1) % len(many_marker)
+
+   Plot.xlabel("edge squared over sample (log)")
+   Plot.ylabel("squared loss squared (log)")
    Plot.title("Attention Mechanism")
    title = ("current/plot-" + situation + '.' + "png")
-   Plot.legend(loc = "upper left")
-   Plot.savefig(title, dpi = 300)
+   Plot.legend(
+      loc = "center left",
+      bbox_to_anchor = (0.0, 1.23),
+      ncol = 3,
+      fontsize = "x-small",
+   )
+   Plot.subplots_adjust(top = 0.75)
+   Plot.savefig(title, dpi = 600)
    Plot.clf()
 
 def fit_data_find_loss(dot, many_input, many_observation):
@@ -246,15 +283,15 @@ def add_attention(period, many_input):
    width = len(many_input[0])
    many_attentive = many_input
    if period > 0:
+      sinusoidal = [NP.sin(2 * NP.pi * k / period) for k in range(width)]
       many_attentive = [
-         input
-         + NP.array([NP.sin(2 * NP.pi * k / period) for k in range(width)])
+         NP.array(input.reshape(1, -1) + NP.array(sinusoidal)).reshape(-1, 1)
          for input in many_input
       ]
    elif period < 0:
+      sinusoidal = [NP.cos(2 * NP.pi * k / period) for k in range(width)]
       many_attentive = [
-         input
-         + NP.array([NP.cos(2 * NP.pi * k / period) for k in range(width)])
+         NP.array(input.reshape(1, -1) + NP.array(sinusoidal)).reshape(-1, 1)
          for input in many_input
       ]
    else:
@@ -277,7 +314,6 @@ def generate_history(dot):
       history = history.reshape(1, -1)
       history = NP.append(history, latest)
       history = history.reshape(-1, 1)
-   #print("history", history)
    return NP.array(history[-dot.width:, :])
 
 def generate_random(dot):
@@ -294,6 +330,18 @@ def draw_uniform(low, high):
    generator = NP.random.default_rng()
    return NP.array(generator.uniform(low, high))
 
+def check_abnormal(value):
+   if NP.isnan(value): return False
+   if NP.isinf(value): return False
+   if not (value < 2 ** 16): return False
+   if not (value > - 2 ** 16): return False
+
+
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-main()
+#main("test-small")
+#main("test-medium")
+#main("test-large")
+#main("normal-small")
+main("normal-medium")
+main("normal-large")
