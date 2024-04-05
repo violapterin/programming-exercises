@@ -39,7 +39,7 @@ class Network:
 
    def find_gradient(self, layer):
       result = [
-         self.propagation[layer].flatten().tolist()
+         self.propagation[layer + 1].flatten().tolist()
          if abs(node) <= 1
          else NP.zeros(self.width).tolist()
          for node in self.hidden[layer]
@@ -102,10 +102,9 @@ class Constant:
       self.sample = sample
       self.period = period
       self.candidate_period = [4, 6]
-      self.bound_transition = 2
-      self.bound_entry = 5
-      self.range = 12
-      self.epoch = 16
+      self.bound_transition = 3
+      self.bound_entry = 1
+      self.epoch = 96
       self.size_step = 0.1
       self.decay_step = 0.95
       self.weight_top = draw_uniform_vector(-1, 1, (1, self.width))
@@ -122,12 +121,12 @@ def main(situation):
       array_depth = [4, 6]
       width = 4
    elif ("medium" in situation):
-      array_sample = [4 * item for item in range(4, 8)]
+      array_sample = [4 * item for item in range(3, 6)]
       array_depth = [6, 9, 12]
       width = 6
    elif ("large" in situation):
-      array_sample = [6 * item for item in range(5, 10)]
-      array_depth = [8, 10, 12, 14]
+      array_sample = [5 * item for item in range(3, 6)]
+      array_depth = [12, 14, 16, 18]
       width = 8
    else:
       return
@@ -136,7 +135,7 @@ def main(situation):
    elif ("normal" in situation):
       experiment = 32
    elif ("final" in situation):
-      experiment = 60
+      experiment = 64
    else:
       return
    array_period = [4, 6]
@@ -162,7 +161,7 @@ def main(situation):
                array_constant.append(constant)
             setting.append(array_constant)
 
-   # diimension ~ error^2 * sample ~ edge^2
+   # dimension ~ error^2 * sample ~ edge^2
    # error^2 ~ edge^2 / sample
    result = []
    for array_constant in setting:
@@ -284,19 +283,23 @@ def add_attention(period, many_input):
    many_attentive = many_input
    if period > 0:
       sinusoidal = [NP.sin(2 * NP.pi * k / period) for k in range(width)]
+      sinusoidal = NP.array(sinusoidal).reshape(-1, 1)
+      factor = sinusoidal + NP.ones((width, 1))
       many_attentive = [
-         NP.array(input.reshape(1, -1) + NP.array(sinusoidal)).reshape(-1, 1)
+         factor * NP.array(input.reshape(-1, 1))
          for input in many_input
       ]
    elif period < 0:
       sinusoidal = [NP.cos(2 * NP.pi * k / period) for k in range(width)]
+      sinusoidal = NP.array(sinusoidal).reshape(-1, 1)
+      factor = sinusoidal + NP.ones((width, 1))
       many_attentive = [
-         NP.array(input.reshape(1, -1) + NP.array(sinusoidal)).reshape(-1, 1)
+         factor * NP.array(input.reshape(-1, 1))
          for input in many_input
       ]
    else:
       pass
-   return NP.array(many_attentive)
+   return many_attentive
 
 def generate_history(dot):
    transition = draw_uniform_vector(
@@ -336,12 +339,16 @@ def check_abnormal(value):
    if not (value < 2 ** 16): return False
    if not (value > - 2 ** 16): return False
 
-
 # # # # # # # # # # # # # # # # # # # # # # # #
 
 #main("test-small")
 #main("test-medium")
 #main("test-large")
+
 #main("normal-small")
-main("normal-medium")
+#main("normal-medium")
 main("normal-large")
+
+#main("final-small")
+#main("final-medium")
+#main("final-large")
