@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as NP
+import scipy as SP
 import matplotlib.pyplot as Plot
 import datetime
 
@@ -45,7 +46,6 @@ class Network:
          for node in self.hidden[layer]
       ]
       result = NP.transpose(NP.array(result))
-      #print("gradient max entry:", NP.max(NP.abs(result)))
       return result
 
    def find_loss(self, many_input, many_observation):
@@ -61,8 +61,6 @@ class Network:
    def permeate(self):
       self.hidden[0] = self.input
       for layer in range(self.depth - 1):
-         #print("weight", self.weight[layer])
-         #print("hidden", self.hidden[layer])
          hold_hidden = self.weight[layer] @ self.hidden[layer]
          hold_hidden = [
             float(node) if abs(node) <= 1
@@ -122,11 +120,11 @@ def main(situation):
       width = 4
    elif ("medium" in situation):
       array_sample = [4 * item for item in range(3, 6)]
-      array_depth = [6, 9, 12]
+      array_depth = [8, 12]
       width = 6
    elif ("large" in situation):
       array_sample = [5 * item for item in range(3, 6)]
-      array_depth = [12, 14, 16, 18]
+      array_depth = [14, 16, 18]
       width = 8
    else:
       return
@@ -135,7 +133,7 @@ def main(situation):
    elif ("normal" in situation):
       experiment = 32
    elif ("final" in situation):
-      experiment = 64
+      experiment = 48
    else:
       return
    array_period = [4, 6]
@@ -246,8 +244,6 @@ def main(situation):
       many_pair = curve[1:]
       array_first = [pair[0] for pair in many_pair]
       array_second = [pair[1] for pair in many_pair]
-      print("array_first", array_first)
-      print("array_second", array_second)
       Plot.plot(
          array_first,
          array_second,
@@ -286,7 +282,8 @@ def add_attention(period, many_input):
       sinusoidal = NP.array(sinusoidal).reshape(-1, 1)
       factor = sinusoidal + NP.ones((width, 1))
       many_attentive = [
-         factor * NP.array(input.reshape(-1, 1))
+         SP.special.softmax(NP.array(input.reshape(-1, 1)) @ sinusoidal.transpose())
+         @ factor
          for input in many_input
       ]
    elif period < 0:
@@ -294,7 +291,8 @@ def add_attention(period, many_input):
       sinusoidal = NP.array(sinusoidal).reshape(-1, 1)
       factor = sinusoidal + NP.ones((width, 1))
       many_attentive = [
-         factor * NP.array(input.reshape(-1, 1))
+         SP.special.softmax(NP.array(input.reshape(-1, 1)) @ sinusoidal.transpose())
+         @ factor
          for input in many_input
       ]
    else:
@@ -347,8 +345,8 @@ def check_abnormal(value):
 
 #main("normal-small")
 #main("normal-medium")
-main("normal-large")
+#main("normal-large")
 
-#main("final-small")
-#main("final-medium")
-#main("final-large")
+main("final-small")
+main("final-medium")
+main("final-large")
