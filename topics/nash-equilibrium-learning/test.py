@@ -8,27 +8,36 @@ import matplotlib.pyplot as Plot
 from custom import custom
 
 def test():
-   block_evolution = block_best_response
+   many_catalog = generate_parameter()
+   for catalog in many_catalog:
+      draw(catalog)
+
+def draw(catalog):
+   title = catalog.get("title")
+   nu = catalog.get("nu")
+   mu = catalog.get("mu")
+   update_evolution = catalog.get("update_evolution")
    handle_payoff_proper = ct.nlsys(
-      block_payoff_proper, # update function
-      None,
+      update_payoff_proper,
+      output_payoff_proper,
       inputs = ('xx'),
       outputs = ('uu'),
       name = 'payoff_proper'
    )
    handle_first_order = ct.nlsys(
-      block_first_order, # update function
-      None,
+      update_first_order,
+      output_first_order,
       inputs = ('uu'),
       outputs = ('pp'),
       states = ('qq'),
       name = 'first_order'
    )
    handle_evolution = ct.nlsys(
-      None,
-      block_evolution, # output function
-      inputs = ('xx'),
-      outputs = ('pp'),
+      update_evolution,
+      output_evolution,
+      inputs = ('pp'),
+      outputs = ('xx'),
+      states = ('qq'),
       name = 'evolution'
    )
    handle_payoff = ct.interconnect(
@@ -40,7 +49,6 @@ def test():
       outlist = ['evolution.xx'],
       outputs = 'xx',
    )
-
    handle_closed = ct.interconnect(
       [handle_evolution, handle_payoff],
       connections = [
@@ -51,8 +59,8 @@ def test():
       outputs = 'xx',
    )
 
-   xx_0 = np.array([1, 0, 0])
-   qq_0 = np.array([0, 0, 0])
+   xx_initial = np.array([1, 0, 0])
+   qq_initial = np.array([0, 0, 0])
    array_time, array_output = ct.input_output_response(
       handle_closed,
       T = np.linspace(0, 50, 250),
@@ -75,19 +83,38 @@ def test():
       fontsize = "x-small",
    )
    Plot.savefig(
-      name_transient,
+      title,
       format = "png"
    )
    Plot.clf()
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+def generate_parameter():
+   many_rule = ["smith", "brown", "hybrid"]
+   many_mu = [2 ** zz for zz in range(-1, 2)]
+   many_nu = [2 ** zz for zz in range(-1, 2)]
+   many_alpha = [(1/6) ** zz for zz in range(1, 4)]
+   result = []
+   for rule in many_rule:
+      for alpha in many_alpha:
+         for mu in many_mu:
+            for nu in many_nu:
+               title = "rule-"
+               result = {
+                  title: title
+               }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # tt: time
 # qq: state
 
+def update_payoff_proper(tt, rr, xx):
+   return None
+
 # Sandholm, Population Games and Evolutionary Dynamics, p.62
-def block_payoff_proper_output(tt, qq, xx):
+def output_payoff_proper(tt, rr, xx):
    pp = np.array([
       - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
       - (6 + 20 * xx[1] + 30 * (xx[1] + xx[2]) ** 2),
@@ -95,33 +122,73 @@ def block_payoff_proper_output(tt, qq, xx):
    ])
    return pp
 
-def block_first_order_output(tt, qq, uu):
-   cc = give_constant()
+def give_update_first_order(cc):
    mu = cc.get("mu")
    nu = cc.get("nu")
-   pp = (mu / (mu * nu + 1)) * (nu * uu + qq)
-   return pp
+   update_first_order = (
+      lambda tt, qq, uu:
+      uu - mu * qq
+   )
+   return update_first_order
 
-def block_first_order_update(tt, qq, uu):
-   cc = give_constant()
+def give_output_first_order(cc):
    mu = cc.get("mu")
-   ddqq = uu - mu * qq
-   return ddqq
+   nu = cc.get("nu")
+   output_first_order = (
+      lambda tt, qq, uu:
+      (mu / (mu * nu + 1)) * (nu * uu + qq)
+   )
+   return output_first_order
 
-def block_best_response(tt, pp, vv):
-   a = params.get('a', 3.2)
-   b = params.get('b', 0.6)
-   c = params.get('c', 50.)
-   d = params.get('d', 0.56)
-   k = params.get('k', 125)
-   r = params.get('r', 1.6)
-   H = x[0]
-   L = x[1]
-   u_0 = u[0] if u[0] > 0 else 0
-   dH = (r + u_0) * H * (1 - H/k) - (a * H * L)/(c + H)
-   dL = b * (a * H *  L)/(c + H) - d * L
+def give_update_evolution(cc):
+   rule = cc.get("rule")
+   alpha = cc.get("alpha")
+   if (rule == "smith"):
+      result = (
+         lambda tt, xx, pp: (
+            alpha * update_best_response(tt, xx, pp)
+            + (1 - alpha) * update_smith(tt, xx, pp)
+         )
+      )
+   elif (rule == "brown"):
+      result = (
+         lambda tt, xx, pp: (
+            alpha * update_best_response(tt, xx, pp)
+            + (1 - alpha) * update_brown(tt, xx, pp)
+         )
+      )
+   elif (rule == "hybrid"):
+      result = (lambda tt, qq, uu:
+         lambda tt, xx, pp: (
+            alpha * update_best_response(tt, xx, pp)
+            + (1 - alpha) * update_hybrid(tt, xx, pp)
+         )
+      )
 
-   return np.array([dH, dL])
+def give_output_evolution(cc):
+   result = (
+      lambda tt, xx, pp: (xx)
+   )
+
+def update_smith(tt, xx, pp):
+   return None
+
+def update_brown(tt, xx, pp):
+   return None
+
+def update_hybrid(tt, xx, pp):
+   return None
+
+def update_best_response(tt, xx, pp):
+   pp_copy = np.array(pp, copy = True)
+   pp_max = max(pp)
+   result = []
+   for value in pp:
+      if pp_copy < pp_max:
+         result.append(0)
+      else:
+         result.append(value)
+   return result
 
 def project_to_simplex(xx):
    nn = len(xx)
@@ -134,12 +201,6 @@ def project_to_simplex(xx):
       (np.eye(nn) - unit_bb @ unit_bb.T) @ xx + 1 / np.sqrt(6),
    ])
    return result
-
-def give_constant():
-   return {
-      'mu': 1.0,
-      'nu': 2.0,
-   }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
