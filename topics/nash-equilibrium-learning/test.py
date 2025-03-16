@@ -25,16 +25,16 @@ def draw(catalog):
       name = 'payoff_proper'
    )
    handle_first_order = ct.nlsys(
-      update_first_order,
-      output_first_order,
+      give_update_first_order(catalog),
+      give_output_first_order(catalog),
       inputs = ('uu'),
       outputs = ('pp'),
       states = ('qq'),
       name = 'first_order'
    )
    handle_evolution = ct.nlsys(
-      update_evolution,
-      output_evolution,
+      give_update_evolution(catalog),
+      give_output_evolution(catalog),
       inputs = ('pp'),
       outputs = ('xx'),
       states = ('qq'),
@@ -59,7 +59,7 @@ def draw(catalog):
       outputs = 'xx',
    )
 
-   xx_initial = np.array([1, 0, 0])
+   xx_initial = np.array([1/2, 1/2, 0])
    qq_initial = np.array([0, 0, 0])
    array_time, array_output = ct.input_output_response(
       handle_closed,
@@ -83,7 +83,7 @@ def draw(catalog):
       fontsize = "x-small",
    )
    Plot.savefig(
-      title,
+      catalog.get("title"),
       format = "png"
    )
    Plot.clf()
@@ -95,15 +95,31 @@ def generate_parameter():
    many_mu = [2 ** zz for zz in range(-1, 2)]
    many_nu = [2 ** zz for zz in range(-1, 2)]
    many_alpha = [(1/6) ** zz for zz in range(1, 4)]
-   result = []
+   many_catalog = []
+   count = 0
    for rule in many_rule:
       for alpha in many_alpha:
          for mu in many_mu:
             for nu in many_nu:
-               title = "rule-"
-               result = {
-                  title: title
+               count += 1
+               proper = (
+                  ''
+                  + "no-{}-".format(str(count))
+                  + "rule-{}-".format(rule)
+                  + "alpha-{:.2f}-".format(nu)
+                  + "mu-{:.2f}-".format(mu)
+                  + "nu-{:.2f}-".format(nu)
+               )
+               title = proper.replace('.', '-')
+               catalog = {
+                  "title": title,
+                  "rule": rule,
+                  "alpha": alpha,
+                  "mu": mu,
+                  "nu": nu,
                }
+               many_catalog.append(catalog)
+   return many_catalog
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -122,27 +138,28 @@ def output_payoff_proper(tt, rr, xx):
    ])
    return pp
 
-def give_update_first_order(cc):
-   mu = cc.get("mu")
-   nu = cc.get("nu")
+def give_update_first_order(catalog):
+   mu = catalog.get("mu")
+   nu = catalog.get("nu")
    update_first_order = (
       lambda tt, qq, uu:
       uu - mu * qq
    )
    return update_first_order
 
-def give_output_first_order(cc):
-   mu = cc.get("mu")
-   nu = cc.get("nu")
+def give_output_first_order(catalog):
+   mu = catalog.get("mu")
+   nu = catalog.get("nu")
    output_first_order = (
       lambda tt, qq, uu:
       (mu / (mu * nu + 1)) * (nu * uu + qq)
    )
    return output_first_order
 
-def give_update_evolution(cc):
-   rule = cc.get("rule")
-   alpha = cc.get("alpha")
+def give_update_evolution(catalog):
+   rule = catalog.get("rule")
+   alpha = catalog.get("alpha")
+   result = None
    if (rule == "smith"):
       result = (
          lambda tt, xx, pp: (
@@ -164,20 +181,57 @@ def give_update_evolution(cc):
             + (1 - alpha) * update_hybrid(tt, xx, pp)
          )
       )
+   return result
 
-def give_output_evolution(cc):
+def give_output_evolution(catalog):
    result = (
       lambda tt, xx, pp: (xx)
    )
 
 def update_smith(tt, xx, pp):
-   return None
+   vv = np.zeros(3)
+   for i in range(3):
+      vv[i] = 0
+      for j in range(3):
+         vv[i] += (
+            xx[j] * max(pp[j] - pp[i], 0) # T[j, i]
+            + xx[i] * max(pp[i] - pp[j], 0) # T[i, j]
+         )
+   return vv
 
 def update_brown(tt, xx, pp):
-   return None
+   vv = np.zeros(3)
+   pp_hat = np.inner(pp, xx)
+   for i in range(3):
+      vv[i] = 0
+      for j in range(3):
+         vv[i] += (
+            xx[j] * max(pp[i] - pp_hat, 0) # T[j, i]
+            + xx[i] * max(pp[j] - pp[j], 0) # T[i, j]
+         )
+   return vv
 
 def update_hybrid(tt, xx, pp):
-   return None
+   vv = np.zeros(3)
+   pp_hat = np.inner(pp, xx)
+   for i in range(3):
+      vv[i] = 0
+      for j in range(3):
+         vv[i] += (
+            xx[j] * (
+               2 * max(pp[i] - pp[j], 0)
+               + max(pp[j] - pp[i], 0) ** 2
+               + 4 * max(pp[i] - pp_hat, 0) ** 3
+               + np.exp(pp[i] - pp_hat) - 1
+            ) # T[j, i]
+            + xx[i] * (
+               2 * max(pp[j] - pp[i], 0)
+               + max(pp[i] - pp[j], 0) ** 2
+               + 4 * max(pp[j] - pp_hat, 0) ** 3
+               + np.exp(pp[j] - pp_hat) - 1
+            ) # T[i, j]
+         )
+   return vv
 
 def update_best_response(tt, xx, pp):
    pp_copy = np.array(pp, copy = True)

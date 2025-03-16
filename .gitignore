@@ -5,3 +5,4 @@
 *.pdf
 information-constraint-plot/*.tex
 nash-equilibrium-learning/*.tex
+*.pyc
