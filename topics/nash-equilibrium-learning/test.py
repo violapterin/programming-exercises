@@ -5,67 +5,75 @@ import control as ct
 import numpy as np
 import matplotlib.pyplot as Plot
 
-from custom import custom
-
 def test():
    many_catalog = generate_parameter()
    for catalog in many_catalog:
       draw(catalog)
 
 def draw(catalog):
-   title = catalog.get("title")
-   nu = catalog.get("nu")
-   mu = catalog.get("mu")
-   update_evolution = catalog.get("update_evolution")
-   handle_payoff_proper = ct.nlsys(
-      update_payoff_proper,
-      output_payoff_proper,
-      inputs = ('xx'),
-      outputs = ('uu'),
-      name = 'payoff_proper'
-   )
-   handle_first_order = ct.nlsys(
-      give_update_first_order(catalog),
-      give_output_first_order(catalog),
-      inputs = ('uu'),
-      outputs = ('pp'),
-      states = ('qq'),
-      name = 'first_order'
-   )
-   handle_evolution = ct.nlsys(
+   handle_evolution = ct.NonlinearIOSystem(
       give_update_evolution(catalog),
       give_output_evolution(catalog),
-      inputs = ('pp'),
-      outputs = ('xx'),
-      states = ('qq'),
-      name = 'evolution'
+      inputs = 3,
+      outputs = 3,
+      states = 3,
+      name = 'evolution',
+   )
+   handle_payoff_proper = ct.NonlinearIOSystem(
+      update_payoff_proper,
+      output_payoff_proper,
+      inputs = 3,
+      outputs = 3,
+      states = 3,
+      name = 'payoff_proper',
+   )
+   handle_first_order = ct.NonlinearIOSystem(
+      give_update_first_order(catalog),
+      give_output_first_order(catalog),
+      inputs = 3,
+      outputs = 3,
+      states = 3,
+      name = 'first_order',
    )
    handle_payoff = ct.interconnect(
       [handle_payoff_proper, handle_first_order],
       connections = [
-         ['evolution.pp', 'payoff.pp'],
-         ['payoff.xx', 'evolution.xx'],
+         ['first_order.u[0]', 'payoff_proper.y[0]'],
+         ['first_order.u[1]', 'payoff_proper.y[1]'],
+         ['first_order.u[2]', 'payoff_proper.y[2]'],
       ],
-      outlist = ['evolution.xx'],
-      outputs = 'xx',
+      inplist = ['payoff_proper.u[0]', 'payoff_proper.u[1]', 'payoff_proper.u[2]'],
+      inputs = 3,
+      outlist = ['first_order.y[0]', 'first_order.y[1]', 'first_order.y[2]'],
+      outputs = 3,
+      states = 6,
+      name = 'payoff',
    )
    handle_closed = ct.interconnect(
       [handle_evolution, handle_payoff],
       connections = [
-         ['evolution.pp', 'payoff.pp'],
-         ['payoff.xx', 'evolution.xx'],
+         ['evolution.u[0]', 'payoff.y[0]'],
+         ['evolution.u[1]', 'payoff.y[1]'],
+         ['evolution.u[2]', 'payoff.y[2]'],
+         ['payoff.u[0]', 'evolution.y[0]'],
+         ['payoff.u[1]', 'evolution.y[1]'],
+         ['payoff.u[2]', 'evolution.y[2]'],
       ],
-      outlist = ['evolution.xx'],
-      outputs = 'xx',
+      inplist = [],
+      inputs = 0,
+      outlist = ['evolution.y[0]', 'evolution.y[1]', 'evolution.y[2]'],
+      outputs = 3,
+      states = 9,
+      name = 'closed',
    )
 
    xx_initial = np.array([1/2, 1/2, 0])
-   qq_initial = np.array([0, 0, 0])
    array_time, array_output = ct.input_output_response(
       handle_closed,
       T = np.linspace(0, 50, 250),
-      U = 0,
-      X0 = np.vstack((xx_0, qq_0)),
+      #U = None,
+      X0 = [1/2, 1/2, 0, 0, 0, 0, 0, 0, 0],
+      #X0 = [1/2, 1/2, 0],
    )
 
    Plot.plot(
@@ -118,7 +126,7 @@ def generate_parameter():
                   "mu": mu,
                   "nu": nu,
                }
-               many_catalog.append(catalog)
+               many_catalog.append(catalog.copy())
    return many_catalog
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -126,11 +134,11 @@ def generate_parameter():
 # tt: time
 # qq: state
 
-def update_payoff_proper(tt, rr, xx):
+def update_payoff_proper(tt, ss, xx, hold):
    return None
 
 # Sandholm, Population Games and Evolutionary Dynamics, p.62
-def output_payoff_proper(tt, rr, xx):
+def output_payoff_proper(tt, ss, xx, hold):
    pp = np.array([
       - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
       - (6 + 20 * xx[1] + 30 * (xx[1] + xx[2]) ** 2),
@@ -142,7 +150,7 @@ def give_update_first_order(catalog):
    mu = catalog.get("mu")
    nu = catalog.get("nu")
    update_first_order = (
-      lambda tt, qq, uu:
+      lambda tt, qq, uu, table:
       uu - mu * qq
    )
    return update_first_order
@@ -151,7 +159,7 @@ def give_output_first_order(catalog):
    mu = catalog.get("mu")
    nu = catalog.get("nu")
    output_first_order = (
-      lambda tt, qq, uu:
+      lambda tt, qq, uu, table:
       (mu / (mu * nu + 1)) * (nu * uu + qq)
    )
    return output_first_order
@@ -162,21 +170,21 @@ def give_update_evolution(catalog):
    result = None
    if (rule == "smith"):
       result = (
-         lambda tt, xx, pp: (
+         lambda tt, xx, pp, table: (
             alpha * update_best_response(tt, xx, pp)
             + (1 - alpha) * update_smith(tt, xx, pp)
          )
       )
    elif (rule == "brown"):
       result = (
-         lambda tt, xx, pp: (
+         lambda tt, xx, pp, table: (
             alpha * update_best_response(tt, xx, pp)
             + (1 - alpha) * update_brown(tt, xx, pp)
          )
       )
    elif (rule == "hybrid"):
-      result = (lambda tt, qq, uu:
-         lambda tt, xx, pp: (
+      result = (
+         lambda tt, xx, pp, table: (
             alpha * update_best_response(tt, xx, pp)
             + (1 - alpha) * update_hybrid(tt, xx, pp)
          )
@@ -185,7 +193,8 @@ def give_update_evolution(catalog):
 
 def give_output_evolution(catalog):
    result = (
-      lambda tt, xx, pp: (xx)
+      lambda tt, xx, pp, table:
+      xx
    )
 
 def update_smith(tt, xx, pp):
@@ -234,15 +243,14 @@ def update_hybrid(tt, xx, pp):
    return vv
 
 def update_best_response(tt, xx, pp):
-   pp_copy = np.array(pp, copy = True)
+   yy = np.array(pp, copy = True)
    pp_max = max(pp)
-   result = []
-   for value in pp:
-      if pp_copy < pp_max:
-         result.append(0)
-      else:
-         result.append(value)
-   return result
+   for index in range(len(pp)):
+      if (yy[index] < pp_max - 1e-6):
+         yy[index] = 0
+   yy = yy / np.count_nonzero(yy)
+   vv = yy - xx
+   return vv
 
 def project_to_simplex(xx):
    nn = len(xx)
