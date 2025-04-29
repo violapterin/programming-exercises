@@ -5,9 +5,11 @@ import control as ct
 import numpy as np
 import matplotlib.pyplot as Plot
 
-def test():
+def main():
    many_catalog = generate_parameter()
    for catalog in many_catalog:
+      print("Case:")
+      print(catalog["title"])
       draw(catalog)
 
 def draw(catalog):
@@ -35,6 +37,46 @@ def draw(catalog):
       states = 3,
       name = 'first_order',
    )
+   handle_closed = ct.interconnect(
+      [handle_evolution, handle_payoff_proper],
+      connections = [
+         ['evolution.u[0]', 'payoff_proper.y[0]'],
+         ['evolution.u[1]', 'payoff_proper.y[1]'],
+         ['evolution.u[2]', 'payoff_proper.y[2]'],
+         ['payoff_proper.u[0]', 'evolution.y[0]'],
+         ['payoff_proper.u[1]', 'evolution.y[1]'],
+         ['payoff_proper.u[2]', 'evolution.y[2]'],
+      ],
+      inplist = [],
+      inputs = 0,
+      outlist = ['evolution.y[0]', 'evolution.y[1]', 'evolution.y[2]'],
+      outputs = 3,
+      states = 6,
+      name = 'closed',
+   )
+   '''
+   handle_closed = ct.interconnect(
+      [handle_evolution, handle_first_order, handle_payoff_proper],
+      connections = [
+         ['first_order.u[0]', 'payoff_proper.y[0]'],
+         ['first_order.u[1]', 'payoff_proper.y[1]'],
+         ['first_order.u[2]', 'payoff_proper.y[2]'],
+         ['evolution.u[0]', 'first_order.y[0]'],
+         ['evolution.u[1]', 'first_order.y[1]'],
+         ['evolution.u[2]', 'first_order.y[2]'],
+         ['payoff_proper.u[0]', 'evolution.y[0]'],
+         ['payoff_proper.u[1]', 'evolution.y[1]'],
+         ['payoff_proper.u[2]', 'evolution.y[2]'],
+      ],
+      inplist = [],
+      inputs = 0,
+      outlist = ['evolution.y[0]', 'evolution.y[1]', 'evolution.y[2]'],
+      outputs = 3,
+      states = 9,
+      name = 'closed',
+   )
+   '''
+   '''
    handle_payoff = ct.interconnect(
       [handle_payoff_proper, handle_first_order],
       connections = [
@@ -66,13 +108,15 @@ def draw(catalog):
       states = 9,
       name = 'closed',
    )
+   '''
 
    xx_initial = np.array([1/2, 1/2, 0])
    array_time, array_output = ct.input_output_response(
       handle_closed,
       T = np.linspace(0, 50, 250),
       #U = None,
-      X0 = [1/2, 1/2, 0, 0, 0, 0, 0, 0, 0],
+      X0 = [1/2, 1/2, 0, 0, 0, 0],
+      #X0 = [1/2, 1/2, 0, 0, 0, 0, 0, 0, 0],
       #X0 = [1/2, 1/2, 0],
    )
 
