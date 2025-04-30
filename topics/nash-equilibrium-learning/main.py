@@ -15,9 +15,10 @@ def main():
    #test()
    #draw()
    many_catalog = generate_parameter()
+   be_cut = False
    cutoff = 24 # XXX
    for catalog in many_catalog:
-      if (catalog["count"] > cutoff): break
+      if (be_cut and catalog["count"] > cutoff): break
       print("Case {} of {}: {}".format(catalog["count"], catalog["total"], catalog["title"]))
       draw(catalog)
 
@@ -62,7 +63,7 @@ def draw(catalog):
       t_span = [0, 10],
       y0 = yy_initial,
       t_eval = array_tt,
-      method = 'Radau',
+      method = 'LSODA',
    )
    #print("t = ", answer.t)
    trajectory = np.array([
@@ -74,6 +75,15 @@ def draw(catalog):
       trajectory.transpose()[0],
       trajectory.transpose()[1],
       marker = "D",
+      markersize = 2.1,
+      linewidth = 0.7,
+      color = "blue",
+   )
+   Plot.plot(
+      [-np.sqrt(1/2), 0, np.sqrt(1/2)],
+      [0, np.sqrt(3/2), 0],
+      marker = ".",
+      color = "cyan",
    )
    Plot.xlabel("along (-1, 1, 0)")
    Plot.ylabel("along (-1/2, -1/2, 1)")
@@ -89,7 +99,8 @@ def draw(catalog):
    '''
    Plot.savefig(
       "plot/" + catalog["title"] + ".png",
-      format = "png"
+      dpi = 240,
+      format = "png",
    )
    Plot.clf()
 
