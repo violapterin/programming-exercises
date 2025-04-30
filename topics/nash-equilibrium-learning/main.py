@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-#import os
+import os
 #import control as ct
 import numpy as np
 from scipy.integrate import solve_ivp as Solve
@@ -9,150 +9,74 @@ import matplotlib.pyplot as Plot
 
 
 def main():
+   os.system("rm -rf ./{}".format("plot"))
+   os.system("mkdir {}".format("plot"))
+   #os.system("python3 ./draw.py {}".format(mode))
    #test()
-   draw()
-   '''
-      many_catalog = generate_parameter()
-      for catalog in many_catalog:
-         print("Case:")
-         print(catalog["title"])
-         draw(catalog)
-   '''
+   #draw()
+   many_catalog = generate_parameter()
+   cutoff = 24 # XXX
+   for catalog in many_catalog:
+      if (catalog["count"] > cutoff): break
+      print("Case {} of {}: {}".format(catalog["count"], catalog["total"], catalog["title"]))
+      draw(catalog)
 
-def test():
-   array = [[1,3], [2,4]]
-   np.concatenate(array)
-   flat = [item for row in array for item in row]
-   print(flat)
-
-def update(tt, yy):
-   xx = yy[0:3]
-   qq = yy[3:6]
-   uu = yy[6:9]
-   ss = yy[9:12]
-   pp = yy[12:15]
-   d_xx = vv(xx, pp)
-   d_qq = gg(qq, xx)
-   d_uu = np.array([
-      (
-         - (20 + 30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[0]
-         - (30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[2]
-      ),
-      (
-         - (20 + 30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[1]
-         - (30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[2]
-      ),
-      (
-         - (30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[0]
-         - (30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[1]
-         - (20 + 30 * 2 * (xx[0] + xx[2]) + 30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[2]
-      ),
+def payoff(xx):
+   uu = np.array([
+      - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
+      - (6 + 20 * xx[1] + 30 * (xx[1] + xx[2]) ** 2),
+      - (5 + 20 * xx[2] + 30 * (xx[0] + xx[2]) ** 2 + 30 * (xx[1] + xx[2]) ** 2)
    ])
-   d_ss = (uu - mu * ss)
-   d_pp = (
-      gamma * d_ss(xx, qq, uu, ss, pp)
-      + gamma * nu * d_uu(xx, qq, uu, ss, pp)
-   )
+   return uu
 
+def give_update_from_catalog(catalog):
+   def update(tt, yy):
+      mu = catalog["mu"]
+      nu = catalog["nu"]
+      gamma = catalog["gamma"]
+      xx = yy[0:3]
+      ss = yy[3:6]
+      uu = payoff(xx)
+      pp = gamma * ss + gamma * nu * uu
+      d_xx = np.zeros(3)
+      if (catalog["rule"] == "smith"):
+         d_xx = update_hybrid(xx, pp)
+      elif (catalog["rule"] == "brown"):
+         d_xx = update_brown(xx, pp)
+      elif (catalog["rule"] == "best"):
+         d_xx = update_best(xx, pp)
+      d_ss = uu - mu * ss
+      result = np.concatenate((d_xx, d_ss))
+      return result
+   return update
 
-def vv_smith(xx, pp):
-   vv = np.zeros(3)
-   for i in range(3):
-      vv[i] = 0
-      for j in range(3):
-         vv[i] += (
-            xx[j] * max(pp[j] - pp[i], 0) # T[j, i]
-            + xx[i] * max(pp[i] - pp[j], 0) # T[i, j]
-         )
-   return np.array(vv)
-
-
-def draw():
-   mu = 1
-   nu = 1
-   gamma = 1
-   gg = (lambda qq, xx: np.zeros(3))
-   vv = vv_smith
-   '''
-   hh = (
-      lambda qq, xx:
-      [
-         - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
-         - (6 + 20 * xx[1] + 30 * (xx[1] + xx[2]) ** 2),
-         - (5 + 20 * xx[2] + 30 * (xx[0] + xx[2]) ** 2 + 30 * (xx[1] + xx[2]) ** 2)
-      ]
-   )
-   '''
-   d_xx = (
-      lambda xx, qq, uu, ss, pp:
-      vv(xx, pp)
-   )
-   d_qq = (
-      lambda xx, qq, uu, ss, pp:
-      gg(qq, xx)
-   )
-   d_uu = (
-      lambda xx, qq, uu, ss, pp:
-      np.array([
-         (
-            - (20 + 30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[0]
-            - (30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[2]
-         ),
-         (
-            - (20 + 30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[1]
-            - (30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[2]
-         ),
-         (
-            - (30 * 2 * (xx[0] + xx[2])) * vv(xx, pp)[0]
-            - (30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[1]
-            - (20 + 30 * 2 * (xx[0] + xx[2]) + 30 * 2 * (xx[1] + xx[2])) * vv(xx, pp)[2]
-         ),
-      ])
-   )
-   d_ss = (
-      lambda xx, qq, uu, ss, pp:
-      uu - mu * ss
-   )
-   d_pp = (
-      lambda xx, qq, uu, ss, pp:
-      (
-         gamma * d_ss(xx, qq, uu, ss, pp)
-         + gamma * nu * d_uu(xx, qq, uu, ss, pp)
-      )
-   )
+def draw(catalog):
    array_tt = np.linspace(0, 10, 100)
-   update = (
-      lambda xx, qq, uu, ss, pp:
-      (
-         np.array([
-            d_xx(xx, qq, uu, ss, pp)[0], d_xx(xx, qq, uu, ss, pp)[1], d_xx(xx, qq, uu, ss, pp)[2],
-            d_qq(xx, qq, uu, ss, pp)[0], d_qq(xx, qq, uu, ss, pp)[1], d_qq(xx, qq, uu, ss, pp)[2],
-            d_uu(xx, qq, uu, ss, pp)[0], d_uu(xx, qq, uu, ss, pp)[1], d_uu(xx, qq, uu, ss, pp)[2],
-            d_ss(xx, qq, uu, ss, pp)[0], d_ss(xx, qq, uu, ss, pp)[1], d_ss(xx, qq, uu, ss, pp)[2],
-            d_pp(xx, qq, uu, ss, pp)[0], d_pp(xx, qq, uu, ss, pp)[1], d_pp(xx, qq, uu, ss, pp)[2],
-         ])
-      )
+   yy_initial = np.concatenate(
+      (catalog["start"], np.array([0, 0, 0]))
    )
-   yy_initial = [
-      1/3, 1/3, 1/3,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-   ]
+   #print("initial: ", project_to_simplex(yy_initial[0:3]))
+   update = give_update_from_catalog(catalog)
    answer = Solve(
-      update,
-      [0, 10],
-      yy_initial,
+      fun = update,
+      t_span = [0, 10],
+      y0 = yy_initial,
       t_eval = array_tt,
+      method = 'Radau',
    )
-   array_xx = [np.linalg.norm(row[0:3]) for row in answer.y.transpose()]
+   #print("t = ", answer.t)
+   trajectory = np.array([
+      project_to_simplex(row[0:3])
+      for row in answer.y.transpose()
+   ])
+   #print("trajectory: ", trajectory)
    Plot.plot(
-      array_tt,
-      array_xx,
+      trajectory.transpose()[0],
+      trajectory.transpose()[1],
+      marker = "D",
    )
-   Plot.xlabel("along x[2] == 0")
-   Plot.ylabel("along x[0] == x[1]")
+   Plot.xlabel("along (-1, 1, 0)")
+   Plot.ylabel("along (-1/2, -1/2, 1)")
    Plot.title("trajectory")
    Plot.subplots_adjust(top = 0.75)
    '''
@@ -164,193 +88,134 @@ def draw():
    )
    '''
    Plot.savefig(
-      "test.png",
+      "plot/" + catalog["title"] + ".png",
       format = "png"
    )
    Plot.clf()
 
-'''
-   xx_initial = np.array([1/2, 1/2, 0])
-   array_time, array_output = ct.input_output_response(
-      handle_closed,
-      T = np.linspace(0, 50, 250),
-      #U = None,
-      X0 = [1/2, 1/2, 0, 0, 0, 0],
-      #X0 = [1/2, 1/2, 0, 0, 0, 0, 0, 0, 0],
-      #X0 = [1/2, 1/2, 0],
-   )
-'''
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-def generate_parameter():
-   many_rule = ["smith", "brown", "hybrid"]
-   many_mu = [2 ** zz for zz in range(-1, 2)]
-   many_nu = [2 ** zz for zz in range(-1, 2)]
-   many_alpha = [(1/6) ** zz for zz in range(1, 4)]
-   many_catalog = []
-   count = 0
-   for rule in many_rule:
-      for alpha in many_alpha:
-         for mu in many_mu:
-            for nu in many_nu:
-               count += 1
-               proper = (
-                  ''
-                  + "no-{}-".format(str(count))
-                  + "rule-{}-".format(rule)
-                  + "alpha-{:.2f}-".format(nu)
-                  + "mu-{:.2f}-".format(mu)
-                  + "nu-{:.2f}-".format(nu)
-               )
-               title = proper.replace('.', '-')
-               catalog = {
-                  "title": title,
-                  "rule": rule,
-                  "alpha": alpha,
-                  "mu": mu,
-                  "nu": nu,
-               }
-               many_catalog.append(catalog.copy())
-   return many_catalog
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# tt: time
-# qq: state
-
-'''
-def update_payoff_proper(tt, ss, xx, hold):
-   return None
-
-# Sandholm, Population Games and Evolutionary Dynamics, p.62
-def output_payoff_proper(tt, ss, xx, hold):
-   pp = np.array([
-      - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
-      - (6 + 20 * xx[1] + 30 * (xx[1] + xx[2]) ** 2),
-      - (5 + 20 * xx[2] + 30 * (xx[0] + xx[2]) ** 2 + 30 * (xx[1] + xx[2]) ** 2),
-   ])
-   return pp
-
-def give_update_first_order(catalog):
-   mu = catalog.get("mu")
-   nu = catalog.get("nu")
-   update_first_order = (
-      lambda tt, qq, uu, table:
-      uu - mu * qq
-   )
-   return update_first_order
-
-def give_output_first_order(catalog):
-   mu = catalog.get("mu")
-   nu = catalog.get("nu")
-   output_first_order = (
-      lambda tt, qq, uu, table:
-      (mu / (mu * nu + 1)) * (nu * uu + qq)
-   )
-   return output_first_order
-
-def give_update_evolution(catalog):
-   rule = catalog.get("rule")
-   alpha = catalog.get("alpha")
-   result = None
-   if (rule == "smith"):
-      result = (
-         lambda tt, xx, pp, table: (
-            alpha * update_best_response(tt, xx, pp)
-            + (1 - alpha) * update_smith(tt, xx, pp)
-         )
-      )
-   elif (rule == "brown"):
-      result = (
-         lambda tt, xx, pp, table: (
-            alpha * update_best_response(tt, xx, pp)
-            + (1 - alpha) * update_brown(tt, xx, pp)
-         )
-      )
-   elif (rule == "hybrid"):
-      result = (
-         lambda tt, xx, pp, table: (
-            alpha * update_best_response(tt, xx, pp)
-            + (1 - alpha) * update_hybrid(tt, xx, pp)
-         )
-      )
-   return result
-
-def give_output_evolution(catalog):
-   result = (
-      lambda tt, xx, pp, table:
-      xx
-   )
-
-def update_smith(tt, xx, pp):
+def update_smith(xx, pp):
    vv = np.zeros(3)
    for i in range(3):
       vv[i] = 0
       for j in range(3):
          vv[i] += (
             xx[j] * max(pp[j] - pp[i], 0) # T[j, i]
-            + xx[i] * max(pp[i] - pp[j], 0) # T[i, j]
+            - xx[i] * max(pp[i] - pp[j], 0) # T[i, j]
          )
-   return vv
+   return np.array(vv)
 
-def update_brown(tt, xx, pp):
+def update_brown(xx, pp):
    vv = np.zeros(3)
-   pp_hat = np.inner(pp, xx)
+   pp_hat = pp.T @ xx
    for i in range(3):
       vv[i] = 0
       for j in range(3):
          vv[i] += (
             xx[j] * max(pp[i] - pp_hat, 0) # T[j, i]
-            + xx[i] * max(pp[j] - pp[j], 0) # T[i, j]
+            - xx[i] * max(pp[j] - pp_hat, 0) # T[i, j]
          )
    return vv
 
-def update_hybrid(tt, xx, pp):
+def update_hybrid(xx, pp):
    vv = np.zeros(3)
-   pp_hat = np.inner(pp, xx)
+   pp_hat = pp.T @ xx
    for i in range(3):
       vv[i] = 0
       for j in range(3):
          vv[i] += (
             xx[j] * (
                2 * max(pp[i] - pp[j], 0)
-               + max(pp[j] - pp[i], 0) ** 2
+               + max(pp[i] - pp[j], 0) ** 2
                + 4 * max(pp[i] - pp_hat, 0) ** 3
                + np.exp(pp[i] - pp_hat) - 1
             ) # T[j, i]
-            + xx[i] * (
+            - xx[i] * (
                2 * max(pp[j] - pp[i], 0)
-               + max(pp[i] - pp[j], 0) ** 2
+               + max(pp[j] - pp[i], 0) ** 2
                + 4 * max(pp[j] - pp_hat, 0) ** 3
                + np.exp(pp[j] - pp_hat) - 1
             ) # T[i, j]
          )
    return vv
 
-def update_best_response(tt, xx, pp):
+def update_best(xx, pp):
    yy = np.array(pp, copy = True)
    pp_max = max(pp)
+   number_nonzero = len(pp)
    for index in range(len(pp)):
-      if (yy[index] < pp_max - 1e-6):
+      if (yy[index] < pp_max - 1e-9):
          yy[index] = 0
-   yy = yy / np.count_nonzero(yy)
+         number_nonzero -= 1
+      else: 
+         yy[index] = 1
+   yy = yy / number_nonzero
    vv = yy - xx
    return vv
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+def generate_parameter():
+   many_start = [
+      np.array([1/3, 2/3, 0]),
+      np.array([2/3, 1/3, 0]),
+      np.array([1/3, 0, 2/3]),
+      np.array([2/3, 0, 1/3]),
+      np.array([0, 1/3, 2/3]),
+      np.array([0, 2/3, 1/3]),
+   ]
+   many_rule = ["smith", "brown", "hybrid"]
+   many_mu = [3 ** zz for zz in range(-1, 0)]
+   many_mu = [- mu for mu in many_mu] + [0] + many_mu
+   many_nu = [3 ** zz for zz in range(-1, 0)]
+   many_nu = [- nu for nu in many_nu] + [0] + many_nu
+   #many_alpha = [(1/6) ** zz for zz in range(1, 4)]
+   many_alpha = [1.00]
+   many_gamma = [1.00]
+   total = len(many_rule) * len(many_start) * len(many_alpha) * len(many_mu) * len(many_nu)
+   many_catalog = []
+   count = 0
+   for alpha in many_alpha:
+      for gamma in many_gamma:
+         for start in many_start:
+            for mu in many_mu:
+               for nu in many_nu:
+                  for rule in many_rule:
+                     count += 1
+                     proper = (
+                        ''
+                        + "no-{}-".format(str(count))
+                        + "start-{:.1f},{:.1f},{:.1f}-".format(start[0], start[1], start[2])
+                        + "rule-{}-".format(rule)
+                        + "mu-{:.2f}-".format(mu)
+                        + "nu-{:.2f}-".format(nu)
+                        + "alpha-{:.2f}-".format(alpha)
+                        + "gamma-{:.2f}-".format(gamma)
+                     )
+                     title = proper.replace('.', '-')
+                     catalog = {
+                        "title": title,
+                        "count": count,
+                        "total": total,
+                        "start": start,
+                        "rule": rule,
+                        "alpha": alpha,
+                        "gamma": gamma,
+                        "mu": mu,
+                        "nu": nu,
+                     }
+                     many_catalog.append(catalog.copy())
+   return many_catalog
+
 def project_to_simplex(xx):
-   nn = len(xx)
-   unit_aa = np.array([1, -1, 0])
-   unit_bb = np.array([1, -1, 0])
+   unit_aa = np.array([-1, 1, 0])
+   unit_bb = np.array([-1/2, -1/2, 1])
    unit_aa = unit_aa / np.linalg.norm(unit_aa)
    unit_bb = unit_bb / np.linalg.norm(unit_bb)
    result = np.array([
-      (np.eye(nn) - unit_aa @ unit_aa.T) @ xx,
-      (np.eye(nn) - unit_bb @ unit_bb.T) @ xx + 1 / np.sqrt(6),
+      unit_aa.T @ (xx - np.array([1/2, 1/2, 0])),
+      unit_bb.T @ (xx - np.array([1/2, 1/2, 0])),
    ])
    return result
-'''
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
