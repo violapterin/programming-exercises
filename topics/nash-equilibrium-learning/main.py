@@ -35,17 +35,22 @@ def give_update_from_catalog(catalog):
       mu = catalog["mu"]
       nu = catalog["nu"]
       gamma = catalog["gamma"]
+      alpha = catalog["alpha"]
       xx = yy[0:3]
       ss = yy[3:6]
       uu = payoff(xx)
       pp = gamma * ss + gamma * nu * uu
       d_xx = np.zeros(3)
+      aa = np.zeros(3)
+      bb = np.zeros(3)
       if (catalog["rule"] == "smith"):
-         d_xx = update_hybrid(xx, pp)
+         aa = update_smith(xx, pp)
       elif (catalog["rule"] == "brown"):
-         d_xx = update_brown(xx, pp)
-      elif (catalog["rule"] == "best"):
-         d_xx = update_best(xx, pp)
+         aa = update_brown(xx, pp)
+      elif (catalog["rule"] == "hybrid"):
+         aa = update_hybrid(xx, pp)
+      bb = update_best(xx, pp)
+      d_xx = alpha * aa + (1 - alpha) * bb
       d_ss = uu - mu * ss
       result = np.concatenate((d_xx, d_ss))
       return result
@@ -110,8 +115,8 @@ def update_smith(xx, pp):
       vv[i] = 0
       for j in range(3):
          vv[i] += (
-            xx[j] * max(pp[j] - pp[i], 0) # T[j, i]
-            - xx[i] * max(pp[i] - pp[j], 0) # T[i, j]
+            xx[j] * max(pp[i] - pp[j], 0) # T[j, i]
+            - xx[i] * max(pp[j] - pp[i], 0) # T[i, j]
          )
    return np.array(vv)
 
@@ -127,6 +132,7 @@ def update_brown(xx, pp):
          )
    return vv
 
+'''
 def update_hybrid(xx, pp):
    vv = np.zeros(3)
    pp_hat = pp.T @ xx
@@ -148,6 +154,27 @@ def update_hybrid(xx, pp):
             ) # T[i, j]
          )
    return vv
+'''
+
+def update_hybrid(xx, pp):
+   vv = np.zeros(3)
+   pp_hat = pp.T @ xx
+   for i in range(3):
+      vv[i] = 0
+      for j in range(3):
+         vv[i] += (
+            xx[j] * (
+               0.2 * max(pp[i] - pp[j], 0)
+               + 0.1 * max(pp[i] - pp[j], 0) ** 2
+               + 0.4 * max(pp[i] - pp_hat, 0) ** 3
+            ) # T[j, i]
+            - xx[i] * (
+               0.2 * max(pp[j] - pp[i], 0)
+               + 0.1 * max(pp[j] - pp[i], 0) ** 2
+               + 0.4 * max(pp[j] - pp_hat, 0) ** 3
+            ) # T[i, j]
+         )
+   return vv
 
 def update_best(xx, pp):
    yy = np.array(pp, copy = True)
@@ -157,7 +184,7 @@ def update_best(xx, pp):
       if (yy[index] < pp_max - 1e-9):
          yy[index] = 0
          number_nonzero -= 1
-      else: 
+      else:
          yy[index] = 1
    yy = yy / number_nonzero
    vv = yy - xx
@@ -174,7 +201,8 @@ def generate_parameter():
       np.array([0, 1/3, 2/3]),
       np.array([0, 2/3, 1/3]),
    ]
-   many_rule = ["smith", "brown", "hybrid"]
+   #many_rule = ["smith", "brown", "hybrid"]
+   many_rule = ["hybrid"]
    many_mu = [3 ** zz for zz in range(-1, 0)]
    many_mu = [- mu for mu in many_mu] + [0] + many_mu
    many_nu = [3 ** zz for zz in range(-1, 0)]
@@ -209,10 +237,10 @@ def generate_parameter():
                         "total": total,
                         "start": start,
                         "rule": rule,
-                        "alpha": alpha,
-                        "gamma": gamma,
                         "mu": mu,
                         "nu": nu,
+                        "alpha": alpha,
+                        "gamma": gamma,
                      }
                      many_catalog.append(catalog.copy())
    return many_catalog
