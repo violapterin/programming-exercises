@@ -1,214 +1,124 @@
 
-import numpy as NP
+import numpy as np
 import copy
 
-# eta, rho, rr, rr_hat, pp, qq
-def give_all_catalog_steady(be_truncated):
-   cc = give_constant()
-   truncated = cc["truncated_steady"]
-   
-   #many_eta = array_unsigned(*cc["power_eta"])
-   #many_rho = array_unsigned(*cc["power_rho"])
-   many_rr = array_unsigned(*cc["power_rr"])
-   many_rr_hat = array_unsigned(*cc["power_rr_hat"])
-   many_pp = array_signed(*cc["power_pp"])
-   many_qq = array_signed(*cc["power_qq"])
-   total_section = len(many_qq)
-   total_subsection = len(many_pp) * total_section
-   total_subsubsection = len(many_rr_hat) * total_subsection
-   count_subsubsection = 0
-   count_subsection = 0
-   count_section = 0
-
-   all_catalog = []
-   many_many_catalog = []
-   many_catalog = []
-   catalog = []
-   for qq in many_qq:
-      if (be_truncated and count_subsubsection >= truncated):
-         break
-      count_section += 1
-      fact_section = {
-         "total": total_section,
-         "count": count_section,
-         "qq": qq,
-      }
-      many_many_catalog.append(copy.deepcopy(fact_section))
-      for pp in many_pp:
-         if (be_truncated and count_subsubsection > truncated):
-            break
-         count_subsection += 1
-         fact_subsection = {
-            "total": total_subsection,
-            "count": count_subsection,
-            "qq": qq,
-            "pp": pp,
-         }
-         many_catalog.append(copy.deepcopy(fact_subsection))
-         for rr_hat in many_rr_hat:
-            if (be_truncated and count_subsubsection > truncated):
-               break
-            count_subsubsection += 1
-            fact_subsubsection = {
-               "total": total_subsubsection,
-               "count": count_subsubsection,
-               "qq": qq,
-               "pp": pp,
-               "rr_hat": rr_hat,
-            }
-            catalog.append(copy.deepcopy(fact_subsubsection))
-            for rr in many_rr:
-               parameter = {
-                  "total": total_subsubsection,
-                  "count": count_subsubsection,
-                  "qq": qq,
-                  "pp": pp,
-                  "rr_hat": rr_hat,
-                  "rr": rr,
-               }
-               catalog.append(copy.deepcopy(parameter))
-            many_catalog.append(copy.deepcopy(catalog))
-            catalog = []
-         many_many_catalog.append(copy.deepcopy(many_catalog))
-         many_catalog = []
-      all_catalog.append(copy.deepcopy(many_many_catalog))
-      many_many_catalog = []
-   return all_catalog
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# eta, rho, pp, qq, rr, rr_hat
-def give_all_catalog_transient(be_truncated):
+def give_catalog():
    cc = give_constant()
-   truncated = cc["truncated_transient"]
-   
-   many_eta = array_unsigned(*cc["power_eta"])
-   many_rho = array_unsigned(*cc["power_rho"])
-   many_rr = array_unsigned(*cc["power_rr"])[0::2]
-   many_rr_hat = array_unsigned(*cc["power_rr_hat"])[0::2]
-   many_pp = array_signed(*cc["power_pp"])
-   many_qq = array_signed(*cc["power_qq"])
-   total_section = len(many_rr_hat) * len(many_rr)
-   total_subsection = len(many_pp) * len(many_qq) * total_section
-   total_subsubsection = len(many_rho) * total_subsection
-   count_subsubsection = 0
-   count_subsection = 0
-   count_section = 0
+   be_cut = cc["be_cut"]
+   cutoff = cc["cutoff"]
+   many_start = [
+      np.array([1/2, 1/3, 1/6]),
+      np.array([1/2, 1/6, 1/3]),
+      np.array([1/3, 1/3, 1/6]),
+      np.array([1/3, 1/6, 1/3]),
+      np.array([1/6, 1/3, 1/6]),
+      np.array([1/6, 1/6, 1/3]),
+   ]
+   many_rule = ["smith", "brown", "hybrid"]
+   #many_alpha = [1.00] # XXX
+   #many_gamma = [0.60] # XXX
 
-   all_catalog = []
-   many_many_catalog = []
-   many_catalog = []
+   many_mu = array_signed(*cc["power_mu"])[0::2]
+   many_nu = array_signed(*cc["power_nu"])[0::2]
+   many_alpha = array_unsigned(*cc["power_alpha"])[0::2]
+   many_gamma = array_unsigned(*cc["power_gamma"])[0::2]
+   total = (
+      len(many_rule) * len(many_start)
+      * len(many_alpha) * len(many_alpha)
+      * len(many_mu) * len(many_nu)
+   )
    catalog = []
-   for rr_hat in many_rr_hat:
-      for rr in many_rr:
-         if (be_truncated and count_subsubsection >= truncated):
-            break
-         count_section += 1
-         fact_section = {
-            "total": total_section,
-            "count": count_section,
-            "rr_hat": rr_hat,
-            "rr": rr,
-         }
-         many_many_catalog.append(copy.deepcopy(fact_section))
-         for pp in many_pp:
-            for qq in many_qq:
-               if (be_truncated and count_subsubsection > truncated):
-                  break
-               count_subsection += 1
-               fact_subsection = {
-                  "total": total_subsection,
-                  "count": count_subsection,
-                  "rr_hat": rr_hat,
-                  "rr": rr,
-                  "pp": pp,
-                  "qq": qq,
-               }
-               many_catalog.append(copy.deepcopy(fact_subsection))
-               for rho in many_rho:
-                  if (be_truncated and count_subsubsection > truncated):
-                     break
-                  count_subsubsection += 1
-                  fact_subsubsection = {
-                     "total": total_subsubsection,
-                     "count": count_subsubsection,
-                     "rr_hat": rr_hat,
-                     "rr": rr,
-                     "pp": pp,
-                     "qq": qq,
-                     "rho": rho,
-                  }
-                  catalog.append(copy.deepcopy(fact_subsubsection))
-                  for eta in many_eta:
+   count = 0
+   for mu in many_mu:
+      for nu in many_nu:
+         for start in many_start:
+            for gamma in many_gamma:
+               for alpha in many_alpha:
+                  for rule in many_rule:
+                     count += 1
+                     if (be_cut and count > cutoff): break
                      parameter = {
-                        "total": total_subsubsection,
-                        "count": count_subsubsection,
-                        "rr_hat": rr_hat,
-                        "rr": rr,
-                        "pp": pp,
-                        "qq": qq,
-                        "rho": rho,
-                        "eta": eta,
+                        "count": count,
+                        "total": total,
+                        "start": start,
+                        "rule": rule,
+                        "mu": mu,
+                        "nu": nu,
+                        "alpha": alpha,
+                        "gamma": gamma,
                      }
-                     catalog.append(copy.deepcopy(parameter))
-                  many_catalog.append(copy.deepcopy(catalog))
-                  catalog = []
-               many_many_catalog.append(copy.deepcopy(many_catalog))
-               many_catalog = []
-         all_catalog.append(copy.deepcopy(many_many_catalog))
-         many_many_catalog = []
-   return all_catalog
+                     catalog.append(parameter.copy())
+   return catalog
+
+def project_to_simplex(xx):
+   unit_aa = np.array([-1, 1, 0])
+   unit_bb = np.array([-1/2, -1/2, 1])
+   unit_aa = unit_aa / np.linalg.norm(unit_aa)
+   unit_bb = unit_bb / np.linalg.norm(unit_bb)
+   result = np.array([
+      unit_aa.T @ (xx - np.array([1/2, 1/2, 0])),
+      unit_bb.T @ (xx - np.array([1/2, 1/2, 0])),
+   ])
+   return result
+
+def give_constant():
+   constant = {
+      "power_mu": (3, -2, 1),
+      "power_nu": (3, -2, 1),
+      "power_alpha": ((1/2), 1, 2),
+      "power_gamma": ((1/2), 1, 2),
+      # # # # # # # # # # # # # # # #
+      "resolution_image": 150, # DPI
+      "size_marker": 4.8,
+      "width_error": 3.2,
+      "many_color": ['b', 'r', 'g'],
+      "many_style": ['-', '-.', '--', ':'],
+      "many_marker": ['s', 'o', 'D', '^', 'P', 'v'],
+      # # # # # # # # # # # # # # # #
+      "horizon": 3,
+      "step": 0.1,
+      "method_solve": "BDF",
+      # RK45: (default) Explicit Runge-Kutta method of order 5(4)
+      # RK23: Explicit Runge-Kutta method of order 3(2)
+      # DOP853: Explicit Runge-Kutta method of order 8
+      # Radau: Implicit Runge-Kutta method of the Radau IIA family of order 5
+      # BDF: Implicit multi-step variable-order (1 to 5) method
+      # LSODA: Adams/BDF method with automatic stiffness detection and switching
+      # # # # # # # # # # # # # # # #
+      "be_cut": True,
+      "cutoff": 8,
+   }
+   return constant
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def obtain_name_transient(catalog):
-   fact = catalog[0]
+def obtain_name_graphics(parameter):
    proper = (
       ''
-      + "no-{}-".format(str(fact["count"]))
-      + "rr-hat-{}-".format(convert_number(fact["rr_hat"]))
-      + "rr-{}-".format(convert_number(fact["rr"]))
-      + "pp-{}-".format(convert_number(fact["pp"]))
-      + "qq-{}-".format(convert_number(fact["qq"]))
-      + "rho-{}-".format(convert_number(fact["rho"]))
+      + "no-{}-".format(str(parameter["count"]))
+      + "mu-{}-".format(convert_number(parameter["mu"]))
+      + "nu-{}-".format(convert_number(parameter["nu"]))
+      + "start-{}-".format(convert_array(parameter["start"]))
+      + "gamma-{}-".format(convert_number(parameter["gamma"]))
+      + "alpha-{}-".format(convert_number(parameter["alpha"]))
+      + "rule-{}-".format(str(parameter["rule"]))
    )
    proper = proper.replace('.', '-')
-   return ("plot/" + proper + "transient" + '.' + "png")
+   return ("plot/" + proper + '.' + "png")
 
-def obtain_caption_transient(catalog):
-   fact = catalog[0]
+def obtain_caption(parameter):
    caption = (
-      "figure {}:".format(str(fact["count"])) + ' '
+      "figure {}:".format(str(parameter["count"])) + ' '
       + "\\("
-      + "\\hat{{R}} = {},".format(convert_number(fact["rr_hat"]))
-      + "R = {},".format(convert_number(fact["rr"]))
-      + "P = {},".format(convert_number(fact["pp"]))
-      + "Q = {},".format(convert_number(fact["qq"]))
-      + "\\rho = {}".format(convert_number(fact["rho"]))
-      + "\\)"
-   )
-   return caption
-
-def obtain_name_steady(catalog):
-   fact = catalog[0]
-   proper = (
-      ''
-      + "no-{}-".format(str(fact["count"]))
-      + "qq-{}-".format(convert_number(fact["qq"]))
-      + "pp-{}-".format(convert_number(fact["pp"]))
-      + "rr-hat-{}-".format(convert_number(fact["rr_hat"]))
-   )
-   proper = proper.replace('.', '-')
-   return ("plot/" + proper + "steady" + '.' + "png")
-
-def obtain_caption_steady(catalog):
-   fact = catalog[0]
-   caption = (
-      "figure {}:".format(str(fact["count"])) + ' '
-      + "\\("
-      + "Q = {},".format(convert_number(fact["qq"]))
-      + "P = {},".format(convert_number(fact["pp"]))
-      + "\\hat{{R}} = {}".format(convert_number(fact["rr_hat"]))
+      + "\\mu = {}, ".format(convert_number(parameter["mu"]))
+      + "\\nu = {}, ".format(convert_number(parameter["nu"]))
+      + "x_0 = {}, ".format(convert_array(parameter["start"]))
+      + "\\gamma = {}, ".format(convert_number(parameter["gamma"]))
+      + "\\alpha = {}, ".format(convert_number(parameter["alpha"]))
+      + "rule {}".format(parameter["rule"])
       + "\\)"
    )
    return caption
@@ -231,40 +141,17 @@ def array_signed(base, min_exponent, max_exponent):
    many_power_signed.sort()
    return many_power_signed
 
-def give_constant():
-   constant = {
-      "power_eta": (2, -3, 2),
-      "power_rho": (2, -4, 2),
-      "power_rr": (3, -2, 2),
-      "power_rr_hat": (3, -2, 2),
-      "power_pp": ((3/2), -2, 2),
-      "power_qq": ((3/2), -2, 2),
-      # # # # # # # # # # # # # # # #
-      "horizon_transient": 36,
-      "horizon_steady": 64,
-      "resolution_image": 150, # DPI
-      "size_marker": 4.8,
-      "width_error": 3.2,
-      "many_color": ['b', 'r', 'g'],
-      "many_style": ['-', '-.', '--', ':'],
-      "many_marker": ['s', 'o', 'D', '^', 'P', 'v'],
-      # # # # # # # # # # # # # # # #
-      "truncated_transient": 24,
-      "truncated_steady": 8,
-   }
-   return constant
+def convert_array(array):
+   result = ""
+   result += "("
+   for item in array:
+      result += convert_number(item)
+      result += ","
+   result = result[:-1]
+   result += ")"
+   return result
 
 def convert_number(number):
    return ("{:.2f}".format(number))
 
-def get_many_flavor(mode):
-   many_flavor = {
-      "ALL": ["transient", "steady"],
-      "TRANSIENT": ["transient"],
-      "STEADY": ["steady"],
-      "ALL_TEST": ["transient-truncated", "steady-truncated"],
-      "TRANSIENT_TEST": ["transient-truncated"],
-      "STEADY_TEST": ["steady-truncated"],
-   }[mode]
-   return many_flavor
 
