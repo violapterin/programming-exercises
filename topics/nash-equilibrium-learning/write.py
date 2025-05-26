@@ -17,12 +17,24 @@ def write(name_source):
    handle = open(name_source, "a")
    handle.write(give_string_preamble())
    handle.write(give_string_beginning())
-   catalog = custom.give_catalog()
-   for parameter in catalog:
-      caption = custom.obtain_caption(parameter)
-      name_graphics = custom.obtain_name_graphics(parameter)
-      handle.write(give_string_subsection(caption))
-      handle.write(give_string_graphics(name_graphics))
+   all_catalog = custom.find_catalog()
+   for many_many_catalog in all_catalog:
+      title = many_many_catalog[0]
+      handle.write(give_string_section(title))
+      many_many_catalog.pop(0)
+      for many_catalog in many_many_catalog:
+         subtitle = many_catalog[0]
+         handle.write(give_string_subsection(subtitle))
+         many_catalog.pop(0)
+         for catalog in many_catalog:
+            subsubtitle = catalog[0]
+            handle.write(give_string_subsubsection(subsubtitle))
+            catalog.pop(0)
+            for parameter in catalog:
+               caption = custom.get_caption(parameter)
+               handle.write(caption)
+               name_graphics = custom.get_name_graphics(parameter)
+               handle.write(give_string_graphics(name_graphics))
 
    handle.write(give_string_ending())
    handle.close()
@@ -49,8 +61,9 @@ def give_string_preamble():
       bottom = 1.80cm
    ]{geometry}
    %
-   \\title{Plots on bounds for linear quadratic Gaussian
-   control with information constraints}
+   \\title{
+      Nash Equilibrium with First-Order Modification
+   }
    \\author{Tzuyu Jeng}
    \\date{\\today}
    %

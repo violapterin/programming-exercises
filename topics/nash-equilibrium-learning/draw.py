@@ -15,16 +15,22 @@ def main():
    mode = sys.argv[1] # not used for now
    os.system("rm -rf ./{}".format("plot"))
    os.system("mkdir {}".format("plot"))
-   catalog = custom.give_catalog()
-   for parameter in catalog:
-      print(
-         "Case {} of {}: {}".format(
-            parameter["count"],
-            parameter["total"],
-            custom.obtain_name_graphics(parameter),
-         )
-      )
-      draw(parameter)
+   all_catalog = custom.find_catalog()
+   for many_many_catalog in all_catalog:
+      many_many_catalog.pop(0)
+      for many_catalog in many_many_catalog:
+         many_catalog.pop(0)
+         for catalog in many_catalog:
+            catalog.pop(0)
+            for parameter in catalog:
+               print(
+                  "Case {} of {}: {}".format(
+                     parameter["count"],
+                     parameter["total"],
+                     custom.get_name_graphics(parameter),
+                  )
+               )
+               draw(parameter)
 
 def payoff(xx):
    uu = np.array([
@@ -34,12 +40,12 @@ def payoff(xx):
    ])
    return uu
 
-def give_update_from_catalog(catalog):
+def give_update_from_parameter(parameter):
    def update(tt, yy):
-      mu = catalog["mu"]
-      nu = catalog["nu"]
-      gamma = catalog["gamma"]
-      alpha = catalog["alpha"]
+      mu = parameter["mu"]
+      nu = parameter["nu"]
+      gamma = parameter["gamma"]
+      alpha = parameter["alpha"]
       xx = yy[0:3]
       ss = yy[3:6]
       uu = payoff(xx)
@@ -47,11 +53,11 @@ def give_update_from_catalog(catalog):
       d_xx = np.zeros(3)
       aa = np.zeros(3)
       bb = np.zeros(3)
-      if (catalog["rule"] == "smith"):
+      if (parameter["rule"] == "smith"):
          aa = update_smith(xx, pp)
-      elif (catalog["rule"] == "brown"):
+      elif (parameter["rule"] == "brown"):
          aa = update_brown(xx, pp)
-      elif (catalog["rule"] == "hybrid"):
+      elif (parameter["rule"] == "hybrid"):
          aa = update_hybrid(xx, pp)
       bb = update_best(xx, pp)
       d_xx = alpha * aa + (1 - alpha) * bb
@@ -69,7 +75,7 @@ def draw(parameter):
       (parameter["start"], np.array([0, 0, 0]))
    )
    #print("initial: ", project_to_simplex(yy_initial[0:3]))
-   update = give_update_from_catalog(parameter)
+   update = give_update_from_parameter(parameter)
    answer = Solve(
       fun = update,
       t_span = [0, horizon],
@@ -111,7 +117,7 @@ def draw(parameter):
    )
    '''
    Plot.savefig(
-      custom.obtain_name_graphics(parameter),
+      custom.get_name_graphics(parameter),
       dpi = cc["resolution_image"],
       format = "png",
    )
