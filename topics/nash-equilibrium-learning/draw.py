@@ -32,6 +32,69 @@ def main():
                )
                draw(parameter)
 
+def draw(parameter):
+   cc = custom.give_constant()
+   horizon = cc["horizon"]
+   step = cc["step"]
+   array_time = np.linspace(0, int(horizon), int(horizon/step))
+   yy_initial = np.concatenate(
+      (parameter["start"], np.array([0, 0, 0]))
+   )
+
+   index = 0
+   many_curve = []
+   many_rule = ["smith", "brown", "hybrid"]
+   for rule in many_rule:
+      update = give_update_from_parameter(parameter, rule)
+      answer = Solve(
+         fun = update,
+         t_span = [0, horizon],
+         y0 = yy_initial,
+         t_eval = array_time,
+         method = cc["method_solve"],
+      )
+      projection = np.array([
+         custom.project_to_simplex(row[0:3])
+         for row in answer.y.transpose()
+      ])
+      Plot.plot(
+         projection.transpose()[0],
+         projection.transpose()[1],
+         label = rule,
+         linewidth = cc["width_line"],
+         markersize = cc["size_marker"],
+         color = cc["many_color"][index % len(cc["many_color"])],
+         linestyle = cc["many_style"][index % len(cc["many_style"])],
+         marker = cc["many_marker"][index % len(cc["many_marker"])],
+      )
+      index += 1
+   
+   Plot.xlabel("along (-1, 1, 0)")
+   Plot.ylabel("along (-1/2, -1/2, 1)")
+   Plot.title("trajectory")
+   Plot.axis("equal")
+   Plot.subplots_adjust(top = 0.75)
+   Plot.plot(
+      [-np.sqrt(1/2), 0, np.sqrt(1/2)],
+      [0, np.sqrt(3/2), 0],
+      marker = ".",
+      color = "cyan",
+   ) # borders
+   Plot.legend(
+      loc = "center left",
+      bbox_to_anchor = (0.0, 1.14),
+      ncol = 3,
+      fontsize = "x-small",
+   )
+   Plot.savefig(
+      custom.get_name_graphics(parameter),
+      dpi = cc["resolution_image"],
+      format = "png",
+   )
+   Plot.clf()
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 def payoff(xx):
    uu = np.array([
       - (6 + 20 * xx[0] + 30 * (xx[0] + xx[2]) ** 2),
@@ -40,7 +103,7 @@ def payoff(xx):
    ])
    return uu
 
-def give_update_from_parameter(parameter):
+def give_update_from_parameter(parameter, rule):
    def update(tt, yy):
       mu = parameter["mu"]
       nu = parameter["nu"]
@@ -53,11 +116,11 @@ def give_update_from_parameter(parameter):
       d_xx = np.zeros(3)
       aa = np.zeros(3)
       bb = np.zeros(3)
-      if (parameter["rule"] == "smith"):
+      if (rule == "smith"):
          aa = update_smith(xx, pp)
-      elif (parameter["rule"] == "brown"):
+      elif (rule == "brown"):
          aa = update_brown(xx, pp)
-      elif (parameter["rule"] == "hybrid"):
+      elif (rule == "hybrid"):
          aa = update_hybrid(xx, pp)
       bb = update_best(xx, pp)
       d_xx = alpha * aa + (1 - alpha) * bb
@@ -65,65 +128,6 @@ def give_update_from_parameter(parameter):
       result = np.concatenate((d_xx, d_ss))
       return result
    return update
-
-def draw(parameter):
-   cc = custom.give_constant()
-   horizon = cc["horizon"]
-   step = cc["step"]
-   array_tt = np.linspace(0, int(horizon), int(horizon/step))
-   yy_initial = np.concatenate(
-      (parameter["start"], np.array([0, 0, 0]))
-   )
-   #print("initial: ", project_to_simplex(yy_initial[0:3]))
-   update = give_update_from_parameter(parameter)
-   answer = Solve(
-      fun = update,
-      t_span = [0, horizon],
-      y0 = yy_initial,
-      t_eval = array_tt,
-      method = cc["method_solve"],
-   )
-   #print("t = ", answer.t)
-   trajectory = np.array([
-      custom.project_to_simplex(row[0:3])
-      for row in answer.y.transpose()
-   ])
-   #print("trajectory: ", trajectory)
-   Plot.plot(
-      trajectory.transpose()[0],
-      trajectory.transpose()[1],
-      marker = "D",
-      markersize = 2.1,
-      linewidth = 0.7,
-      color = "blue",
-   )
-   Plot.plot(
-      [-np.sqrt(1/2), 0, np.sqrt(1/2)],
-      [0, np.sqrt(3/2), 0],
-      marker = ".",
-      color = "cyan",
-   )
-   Plot.xlabel("along (-1, 1, 0)")
-   Plot.ylabel("along (-1/2, -1/2, 1)")
-   Plot.title("trajectory")
-   Plot.axis("equal")
-   Plot.subplots_adjust(top = 0.75)
-   '''
-   Plot.legend(
-      loc = "center left",
-      bbox_to_anchor = (0.0, 1.14),
-      ncol = 3,
-      fontsize = "x-small",
-   )
-   '''
-   Plot.savefig(
-      custom.get_name_graphics(parameter),
-      dpi = cc["resolution_image"],
-      format = "png",
-   )
-   Plot.clf()
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 def update_smith(xx, pp):
    vv = np.zeros(3)
